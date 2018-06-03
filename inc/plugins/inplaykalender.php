@@ -11,7 +11,7 @@ if(!defined("IN_MYBB")) {
 function inplaykalender_info(){
     return array(
         "name"			=> "Inplaykalender",
-        "description"	=> "Fügt dem Forum einen Kalender hinzu, der extra auf das Ingame eines RPGs abgestimmt ist.",
+        "description"	=> "FÃ¼gt dem Forum einen Kalender hinzu, der extra auf das Ingame eines RPGs abgestimmt ist.",
         "website"		=> "http://github.com/user/its-sparks-fly",
         "author"		=> "sparks fly",
         "authorsite"	=> "http://github.com/user/its-sparks-fly",
@@ -38,8 +38,8 @@ function inplaykalender_install() {
 
     $setting_group = array(
         'name' => 'inplaykalender',
-        'title' => 'Inplaykalender Einstellungen.',
-        'description' => 'Fügt dem Forum einen Kalender hinzu, der extra auf das Ingame eines RPGs abgestimmt ist.',
+        'title' => 'Inplaykalender Einstellungen',
+        'description' => 'FÃ¼gt dem Forum einen Kalender hinzu, der extra auf das Ingame eines RPGs abgestimmt ist.',
         'disporder' => 5, // The order your setting group will display
         'isdefault' => 0
     );

@@ -21,7 +21,7 @@ eval("\$menu = \"".$templates->get("inplaykalender_nav")."\";");
 $year = $mybb->input['y'];
 // no year given? chose year set by admin! 
 if(empty($year)) {
-    $year = $mybb->settings['inplaykalender_months']
+    $year = $mybb->settings['inplaykalender_year'];
 }
 // get month, otherwise the whole year will be displayed
 $month = $mybb->input['m'];
