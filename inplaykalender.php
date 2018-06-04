@@ -28,6 +28,9 @@ $month = $mybb->input['m'];
 // get months as array
 $months = array(1 => $lang->inplaykalender_januar, $lang->inplaykalender_februar, $lang->inplaykalender_maerz, $lang->inplaykalender_april, $lang->inplaykalender_mai, $lang->inplaykalender_juni, $lang->inplaykalender_juli, $lang->inplaykalender_august, $lang->inplaykalender_september, $lang->inplaykalender_oktober, $lang->inplaykalender_november, $lang->inplaykalender_dezember);
 $months_en = array(1 => $lang->inplaykalender_januar_en, $lang->inplaykalender_februar_en, $lang->inplaykalender_maerz_en, $lang->inplaykalender_april_en, $lang->inplaykalender_mai_en, $lang->inplaykalender_juni_en, $lang->inplaykalender_juli_en, $lang->inplaykalender_august_en, $lang->inplaykalender_september_en, $lang->inplaykalender_oktober_en, $lang->inplaykalender_november_en, $lang->inplaykalender_dezember_en);
+// get days as array
+$days = array($lang->inplaykalender_sonntag, $lang->inplaykalender_montag, $lang->inplaykalender_dienstag, $lang->inplaykalender_mittwoch, $lang->inplaykalender_donnerstag, $lang->inplaykalender_freitag, $lang->inplaykalender_samstag);
+
 // landing page
 if(empty($action)) {
     if(empty($month)) {
@@ -95,6 +98,7 @@ if(empty($action)) {
                     }
                 }
                 
+                // check for all available events
                 if($szenen) {
                     $event = "szenen";
                 }
@@ -140,6 +144,7 @@ if(empty($action)) {
                 if($szenen && $birthday && $timeline && $events) {
                     $event = "szenengeburtstagtimelineevent";
                 }
+
                 eval("\$day_bit .= \"".$templates->get("inplaykalender_day_bit")."\";");
                 $days++;
                 if($days == 7) {
@@ -170,17 +175,9 @@ if($action == "add") {
     for($i=1 ; $i <=31; $i++) {
         $day_bit .= "<option value=\"{$i}\">{$i}</option>";
     }
-    
-    $query = $db->query("SELECT uid, username FROM ".TABLE_PREFIX."users
-  		ORDER BY username ASC");
-    while($user = $db->fetch_array($query)) {
-        $user_bit .= "<option value=\"{$user['uid']}\">{$user['username']}</option>";
-    }
-    
     foreach($months as $id => $month) {
         $month_bit .= "<option value=\"{$id}\">{$month}</option>";
-    }    
-    
+    }        
     for($i=2016; $i <=2017; $i++) {
         $year_bit .= "<option value=\"{$i}\">{$i}</option>";
     }
@@ -191,6 +188,8 @@ if($action == "add") {
 }
 
 if($action == "do_add") {
+
+    // format unix timestamp
     $starttime = strtotime($mybb->get_input('year_start')."-".$mybb->get_input('month_start')."-".$mybb->get_input('day_start'));
     $endtime = strtotime($mybb->get_input('year_end')."-".$mybb->get_input('month_end')."-".$mybb->get_input('day_end'));
     

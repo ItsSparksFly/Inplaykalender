@@ -4,6 +4,7 @@ $l['inplaykalender'] = "Inplaykalender";
 $l['inplaykalender_monat'] = "Monat";
 $l['inplaykalender_jahr'] = "Jahr";
 $l['inplaykalender_add'] = "Event hinzuf&uuml;gen";
+$l['inplaykalender_events'] = "Inplay-Events";
 
 // monate
 $l['inplaykalender_januar'] = "Januar";
@@ -31,6 +32,15 @@ $l['inplaykalender_september_en'] = "September";
 $l['inplaykalender_oktober_en'] = "October";
 $l['inplaykalender_november_en'] = "November";
 $l['inplaykalender_dezember_en'] = "December";
+
+// tage
+$l['inplaykalender_montag'] = "Montag";
+$l['inplaykalender_dienstag'] = "Dienstag";
+$l['inplaykalender_mittwoch'] = "Mittwoch";
+$l['inplaykalender_donnerstag'] = "Donnerstag";
+$l['inplaykalender_freitag'] = "Freitag";
+$l['inplaykalender_samstag'] = "Samstag";
+$l['inplaykalender_sonntag'] = "Sonntag";
 
 // event hinzufügen
 $l['inplaykalender_event_name'] = "Name des Events";
