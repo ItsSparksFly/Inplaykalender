@@ -5,8 +5,7 @@ if(!defined("IN_MYBB")) {
     die("Direct initialization of this file is not allowed.");
 }
 
-// link function to file hook // only uncomment if there is a function to link to
-// $plugins->add_hook("hook", "function");
+$plugins->add_hook("global_intermediate", "inplaykalender_global");
 
 function inplaykalender_info(){
     return array(
@@ -60,6 +59,13 @@ function inplaykalender_install() {
         'description' => 'In welchen Monaten spielt dein RPG? Monate mit "," trennen.',
         'optionscode' => 'text',
         'value' => 'April,Mai,Juni', // Default
+        'disporder' => 1
+    ),
+    'inplaykalender_text' => array(
+        'title' => 'Spieljahr',
+        'description' => 'Text für den aktuellen Inplayzeitraum',
+        'optionscode' => 'textarea',
+        'value' => '', // Default
         'disporder' => 1
     ),
     );
@@ -158,5 +164,159 @@ function inplaykalender_deactivate() {
     $query = $db->simple_select("themes", "tid");
     while($theme = $db->fetch_array($query)) {
         update_theme_stylesheet_list($theme['tid']);
+    }
+}
+
+function inplaykalender_global() {
+    global $lang, $mybb, $db, $templates, $theme, $day_bit, $header_inplaykalender_bit, $header_inplaykalender;
+
+    $lang->load('inplaykalender');
+
+    // get inplay months
+    $inplay_months = explode(",", $mybb->settings['inplaykalender_months']);
+    $months_count = count($inplay_months);
+
+    // set up months array
+    $months = array(1 => $lang->inplaykalender_januar, $lang->inplaykalender_februar, $lang->inplaykalender_maerz, $lang->inplaykalender_april, $lang->inplaykalender_mai, $lang->inplaykalender_juni, $lang->inplaykalender_juli, $lang->inplaykalender_august, $lang->inplaykalender_september, $lang->inplaykalender_oktober, $lang->inplaykalender_november, $lang->inplaykalender_dezember);
+    $months_en = array(1 => $lang->inplaykalender_januar_en, $lang->inplaykalender_februar_en, $lang->inplaykalender_maerz_en, $lang->inplaykalender_april_en, $lang->inplaykalender_mai_en, $lang->inplaykalender_juni_en, $lang->inplaykalender_juli_en, $lang->inplaykalender_august_en, $lang->inplaykalender_september_en, $lang->inplaykalender_oktober_en, $lang->inplaykalender_november_en, $lang->inplaykalender_dezember_en);
+
+    foreach($inplay_months as $month)
+    {
+        $key = array_search($month, $months);
+        $month_en = $months_en[$key];
+        $day_bit = "";
+
+        // get days in month
+        $number_days = cal_days_in_month(CAL_GREGORIAN, $key, $mybb->settings['inplaykalender_year']);
+
+                   // get first day of month
+            $time_str = "01-{$months_en[$key]}-{$mybb->settings['inplaykalender_year']}"; // pattern: d-F-Y
+            $first_day = date('w', strtotime($time_str));
+            
+            //get last day of month
+            $time_str = "{$number_days}-{$months_en[$key]}-{$mybb->settings['inplaykalender_year']}"; // pattern: d-F-Y
+            $last_day = date('w', strtotime($time_str));
+            
+            // get empty table datas (e.g. month starts on thursday)
+            for($j = 0; $j < $first_day; $j++) {
+                eval("\$day_bit .= \"".$templates->get("inplaykalender_no_day_bit")."\";");
+                $days++;
+                if($days == 7) {
+                    $day_bit .= "</tr><tr>";
+                    $days = 0;
+                }
+            }
+            // get month's days table datas            
+            for($i = 1; $i <= $number_days; $i++) {
+                $date = strtotime("{$i}-{$months_en[$key]}-{$mybb->settings['inplaykalender_year']}");
+                $title = $i;
+                $event = "";
+                
+                // get inplay scenes
+                $szenen = false;
+                $query = $db->query("SELECT * FROM ".TABLE_PREFIX."threads WHERE ipdate = '$date'");
+                if(mysqli_num_rows($query) > 0) {
+                    $title = "<a href=\"#{$date}\"><strong>{$i}</strong></a>";
+                    $szenen = true;
+                }
+                
+                // get birthdays
+                $birthday = false;
+                $fulldate = date("j.m.", $date);                
+                $query = $db->query("SELECT * FROM ".TABLE_PREFIX."characters WHERE birthday LIKE '$fulldate%'");
+                if(mysqli_num_rows($query) > 0) {
+                    $title = "<a href=\"#{$date}\"><strong>{$i}</strong></a>";
+                    $birthday = true;
+                }
+                
+                // get timeline events
+                $timeline = false;
+                $query = $db->query("SELECT * FROM ".TABLE_PREFIX."timeline WHERE date = '$date'");
+                if(mysqli_num_rows($query) > 0) {
+                    $title = "<a href=\"#{$date}\"><strong>{$i}</strong></a>";
+                    $timeline = true;
+                }
+                
+                // get calendar events
+                $events = false;
+                $query = $db->query("SELECT * FROM ".TABLE_PREFIX."events");
+                while($event_list = $db->fetch_array($query)) {
+                    if($event_list['starttime'] <= $date && $event_list['endtime'] >= $date) {
+                        $title = "<a href=\"#{$date}\"><strong>{$i}</strong></a>";
+                        $events = true;
+                    }
+                }
+                
+                // check for all available events
+                if($szenen) {
+                    $event = "szenen";
+                }
+                if($birthday) {
+                    $event = "geburtstag";
+                }
+                if($timeline) {
+                    $event = "timeline";
+                }
+                if($events) {
+                    $event = "event";
+                }
+                if($szenen && $birthday) {
+                    $event = "szenengeburtstag";
+                }
+                if($szenen && $timeline) {
+                    $event = "szenentimeline";
+                }
+                if($szenen && $events) {
+                    $event = "szenenevent";
+                }
+                if($birthday && $timeline) {
+                    $event = "geburtstagtimeline";
+                }
+                if($birthday && $events) {
+                    $event = "geburtstagevent";
+                }
+                if($timeline && $events) {
+                    $event = "timelineevent";
+                }
+                if($szenen && $birthday && $timeline) {
+                    $event = "szenengeburtstagtimeline";
+                }
+                if($szenen && $birthday && $events) {
+                    $event = "szenengeburtstagevent";
+                }
+                if($szenen && $timeline && $events) {
+                    $event = "szenentimelineevent";
+                }
+                if($birthday && $timeline && $events) {
+                    $event = "geburtstagtimelineevent";
+                }
+                if($szenen && $birthday && $timeline && $events) {
+                    $event = "szenengeburtstagtimelineevent";
+                }
+
+                eval("\$day_bit .= \"".$templates->get("inplaykalender_day_bit")."\";");
+                $days++;
+                if($days == 7) {
+                    $day_bit .= "</tr><tr>";
+                    $days = 0;
+                }
+            }
+            
+            // get empty table datas (e.g. month ends on saturday)
+            for($k = $last_day + 1; $k <= 6; $k++) {
+                eval("\$day_bit .= \"".$templates->get("inplaykalender_no_day_bit")."\";");
+                $days++;
+                if($days == 7) {
+                    $day_bit .= "</tr><tr>";
+                    $days = 0;
+                }
+            }
+        // get table width
+        $width = 100 / $months_count;
+        $width = $width - 1;
+                eval("\$header_inplaykalender_bit .= \"".$templates->get("header_inplaykalender_bit")."\";");
+    }
+    if($mybb->usergroup['cancp'] == "1") {
+        eval("\$header_inplaykalender = \"".$templates->get("header_inplaykalender")."\";");
     }
 }
