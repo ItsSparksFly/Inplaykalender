@@ -6,6 +6,11 @@ if(!defined("IN_MYBB")) {
 }
 
 $plugins->add_hook("global_intermediate", "inplaykalender_global");
+$plugins->add_hook("newthread_start", "inplaykalender_newthread");
+$plugins->add_hook("newthread_do_newthread_end", "inplaykalender_do_newthread");
+$plugins->add_hook("newthread_do_newthread_end", "inplaykalender_do_newthread");
+$plugins->add_hook("editpost_start", "inplaykalender_editpost_start");
+$plugins->add_hook("editpost_do_editpost_end", "inplaykalender_do_editpost");
 
 function inplaykalender_info(){
     return array(
@@ -34,6 +39,22 @@ function inplaykalender_install() {
             PRIMARY KEY (`eid`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;");
     }
+
+  switch($db->type)
+  {
+    case "pgsql":
+      $db->add_column("threads", "event", "text NOT NULL");
+      $db->add_column("posts", "event", "text NOT NULL");
+    break;
+        case "sqlite":
+      $db->add_column("threads", "event", "text NOT NULL");
+      $db->add_column("posts", "event", "text NOT NULL");
+    break;
+        default:
+    $db->add_column("threads", "event", "text NOT NULL");
+    $db->add_column("posts", "event", "text NOT NULL");
+    break;
+  }
 
     $setting_group = array(
         'name' => 'inplaykalender',
@@ -96,8 +117,17 @@ function inplaykalender_uninstall() {
         $db->query("DROP TABLE `mybb_events`");
     }
 
+    if($db->field_exists("event", "threads")) {
+        $db->drop_column("threads", "event");
+    }
+    if($db->field_exists("event", "posts"))
+    {
+        $db->drop_column("posts", "event");
+    }
+
     $db->delete_query('settings', "name LIKE 'inplaykalender%'");
     $db->delete_query('settinggroups', "name = 'inplaykalender'");
+    rebuild_settings();
 }
 
 function inplaykalender_activate() {
@@ -139,7 +169,10 @@ function inplaykalender_activate() {
         .geburtstagtimelineevent { background: linear-gradient(to left top, #C8B6CC 33%, #BADBAF 33%, #BADBAF 66%, #ABD9D8 66%); }
         .geburtstagtimelineevent strong { }
         
-        .szenengeburtstagtimelineevent { background: linear-gradient(to left top, #EBD39D 25%, #C8B6CC 25%, #C8B6CC 50%, #BADBAF 50%, #BADBAF 75%, #ABD9D8 75%); }',
+        .szenengeburtstagtimelineevent { background: linear-gradient(to left top, #EBD39D 25%, #C8B6CC 25%, #C8B6CC 50%, #BADBAF 50%, #BADBAF 75%, #ABD9D8 75%); }
+
+        #mini-kalender { font-size: 7px; }
+        #mini-kalender td { padding: 5px; }',
         'cachefile' => $db->escape_string(str_replace('/', '', inplaykalender.css)),
         'lastmodified' => time()
     );
@@ -153,6 +186,10 @@ function inplaykalender_activate() {
     while($theme = $db->fetch_array($tids)) {
         update_theme_stylesheet_list($theme['tid']);
     }
+
+    include MYBB_ROOT."/inc/adminfunctions_templates.php";
+    find_replace_templatesets("newthread", "#".preg_quote('{$loginbox}')."#i", '{$select_event}');
+    find_replace_templatesets("editpost", "#".preg_quote('{$loginbox}')."#i", '{$select_event}');
 }
 
 function inplaykalender_deactivate() {
@@ -165,6 +202,10 @@ function inplaykalender_deactivate() {
     while($theme = $db->fetch_array($query)) {
         update_theme_stylesheet_list($theme['tid']);
     }
+
+    include MYBB_ROOT."/inc/adminfunctions_templates.php";
+    find_replace_templatesets("newthread", "#".preg_quote('{$select_event}')."#i", '', 0);
+    find_replace_templatesets("editpost", "#".preg_quote('{$select_event}')."#i", '', 0);
 }
 
 function inplaykalender_global() {
@@ -319,4 +360,63 @@ function inplaykalender_global() {
     if($mybb->usergroup['cancp'] == "1") {
         eval("\$header_inplaykalender = \"".$templates->get("header_inplaykalender")."\";");
     }
+}
+
+function inplaykalender_newthread()
+{
+    global $lang, $mybb, $cache, $db, $templates, $forum, $select_event;
+    $lang->load('inplaykalender');
+    $board = $mybb->settings['inplaytracker_forum'];
+    $year = $mybb->settings['inplaykalender_year'];
+
+    if(preg_match("/$board/i", $forum['parentlist']))
+    {
+    $query = $db->query("SELECT name, eid FROM ".TABLE_PREFIX."events");
+    while($eventlist = $db->fetch_array($query)) {
+      $select_event .= "<option value=\"$eventlist[eid]\">$eventlist[name]</option>";
+    }
+
+    eval("\$select_event = \"".$templates->get("newthread_inplaykalender_event")."\";");
+
+    }
+}
+
+function inplaykalender_do_newthread()
+{
+  global $mybb, $cache, $db, $tid;
+
+  $new_record = array(
+        "event" => (int)$mybb->get_input('event')
+    );
+    $db->update_query("threads", $new_record, "tid='{$tid}'");
+}
+
+function inplaykalender_editpost_start()
+{
+  global $lang, $mybb, $db, $cache, $templates, $forum, $select_event, $thread, $pid, $checked_event;
+  $lang->load('inplaykalender');
+    $board = $mybb->settings['inplaytracker_forum'];
+    $year = $mybb->settings['inplaykalender_year'];
+
+    if($pid == $thread['firstpost'] && preg_match("/$board/i", $forum['parentlist'])) {
+        $query = $db->query("SELECT name, eid FROM ".TABLE_PREFIX."events");
+        while($eventlist = $db->fetch_array($query)) {
+            $checked_event = "";
+            if($thread['event'] == $eventlist['eid']) {
+                $checked_event = "selected=\"selected\"";
+            }
+            $select_event .= "<option value=\"$eventlist[eid]\" {$checked_event}>$eventlist[name]</option>";
+        }
+        eval("\$select_event = \"".$templates->get("newthread_inplaykalender_event")."\";");
+    }
+}   
+
+function inplaykalender_do_editpost()
+{
+    global $db, $mybb, $tid, $pid, $thread;
+
+    $new_record = array(
+        "event" => (int)$mybb->get_input('event')
+    );
+    $db->update_query("threads", $new_record, "tid='{$tid}'");
 }
