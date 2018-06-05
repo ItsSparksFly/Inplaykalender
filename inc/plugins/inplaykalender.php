@@ -168,7 +168,7 @@ function inplaykalender_deactivate() {
 }
 
 function inplaykalender_global() {
-    global $lang, $mybb, $db, $templates, $theme, $day_bit, $header_inplaykalender_bit, $header_inplaykalender;
+    global $lang, $mybb, $db, $templates, $theme, $day_calendar_bit, $header_inplaykalender_bit, $header_inplaykalender;
 
     $lang->load('inplaykalender');
 
@@ -184,12 +184,12 @@ function inplaykalender_global() {
     {
         $key = array_search($month, $months);
         $month_en = $months_en[$key];
-        $day_bit = "";
+        $day_calendar_bit = "";
 
         // get days in month
         $number_days = cal_days_in_month(CAL_GREGORIAN, $key, $mybb->settings['inplaykalender_year']);
 
-                   // get first day of month
+            // get first day of month
             $time_str = "01-{$months_en[$key]}-{$mybb->settings['inplaykalender_year']}"; // pattern: d-F-Y
             $first_day = date('w', strtotime($time_str));
             
@@ -199,10 +199,10 @@ function inplaykalender_global() {
             
             // get empty table datas (e.g. month starts on thursday)
             for($j = 0; $j < $first_day; $j++) {
-                eval("\$day_bit .= \"".$templates->get("inplaykalender_no_day_bit")."\";");
+                eval("\$day_calendar_bit .= \"".$templates->get("inplaykalender_no_day_bit")."\";");
                 $days++;
                 if($days == 7) {
-                    $day_bit .= "</tr><tr>";
+                    $day_calendar_bit .= "</tr><tr>";
                     $days = 0;
                 }
             }
@@ -216,7 +216,7 @@ function inplaykalender_global() {
                 $szenen = false;
                 $query = $db->query("SELECT * FROM ".TABLE_PREFIX."threads WHERE ipdate = '$date'");
                 if(mysqli_num_rows($query) > 0) {
-                    $title = "<a href=\"#{$date}\"><strong>{$i}</strong></a>";
+                    $title = "<a href=\"inplaykalender.php#{$date}\" target=\"blank\"><strong>{$i}</strong></a>";
                     $szenen = true;
                 }
                 
@@ -225,7 +225,7 @@ function inplaykalender_global() {
                 $fulldate = date("j.m.", $date);                
                 $query = $db->query("SELECT * FROM ".TABLE_PREFIX."characters WHERE birthday LIKE '$fulldate%'");
                 if(mysqli_num_rows($query) > 0) {
-                    $title = "<a href=\"#{$date}\"><strong>{$i}</strong></a>";
+                    $title = "<a href=\"inplaykalender.php#{$date}\" target=\"blank\"><strong>{$i}</strong></a>";
                     $birthday = true;
                 }
                 
@@ -233,7 +233,7 @@ function inplaykalender_global() {
                 $timeline = false;
                 $query = $db->query("SELECT * FROM ".TABLE_PREFIX."timeline WHERE date = '$date'");
                 if(mysqli_num_rows($query) > 0) {
-                    $title = "<a href=\"#{$date}\"><strong>{$i}</strong></a>";
+                    $title = "<a href=\"inplaykalender.php#{$date}\" target=\"blank\"><strong>{$i}</strong></a>";
                     $timeline = true;
                 }
                 
@@ -242,7 +242,7 @@ function inplaykalender_global() {
                 $query = $db->query("SELECT * FROM ".TABLE_PREFIX."events");
                 while($event_list = $db->fetch_array($query)) {
                     if($event_list['starttime'] <= $date && $event_list['endtime'] >= $date) {
-                        $title = "<a href=\"#{$date}\"><strong>{$i}</strong></a>";
+                        $title = "<a href=\"inplaykalender.php#{$date}\" target=\"blank\"><strong>{$i}</strong></a>";
                         $events = true;
                     }
                 }
@@ -294,20 +294,20 @@ function inplaykalender_global() {
                     $event = "szenengeburtstagtimelineevent";
                 }
 
-                eval("\$day_bit .= \"".$templates->get("inplaykalender_day_bit")."\";");
+                eval("\$day_calendar_bit .= \"".$templates->get("inplaykalender_day_bit")."\";");
                 $days++;
                 if($days == 7) {
-                    $day_bit .= "</tr><tr>";
+                    $day_calendar_bit .= "</tr><tr>";
                     $days = 0;
                 }
             }
             
             // get empty table datas (e.g. month ends on saturday)
             for($k = $last_day + 1; $k <= 6; $k++) {
-                eval("\$day_bit .= \"".$templates->get("inplaykalender_no_day_bit")."\";");
+                eval("\$day_calendar_bit .= \"".$templates->get("inplaykalender_no_day_bit")."\";");
                 $days++;
                 if($days == 7) {
-                    $day_bit .= "</tr><tr>";
+                    $day_calendar_bit .= "</tr><tr>";
                     $days = 0;
                 }
             }
