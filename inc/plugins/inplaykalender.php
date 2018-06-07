@@ -226,136 +226,102 @@ function inplaykalender_global() {
         $key = array_search($month, $months);
         $month_en = $months_en[$key];
         $day_calendar_bit = "";
+        $event = "";
 
         // get days in month
         $number_days = cal_days_in_month(CAL_GREGORIAN, $key, $mybb->settings['inplaykalender_year']);
 
-            // get first day of month
-            $time_str = "01-{$months_en[$key]}-{$mybb->settings['inplaykalender_year']}"; // pattern: d-F-Y
-            $first_day = date('w', strtotime($time_str));
-            
-            //get last day of month
-            $time_str = "{$number_days}-{$months_en[$key]}-{$mybb->settings['inplaykalender_year']}"; // pattern: d-F-Y
-            $last_day = date('w', strtotime($time_str));
-            
-            // get empty table datas (e.g. month starts on thursday)
-            for($j = 0; $j < $first_day; $j++) {
-                eval("\$day_calendar_bit .= \"".$templates->get("inplaykalender_no_day_bit")."\";");
-                $days++;
-                if($days == 7) {
-                    $day_calendar_bit .= "</tr><tr>";
-                    $days = 0;
-                }
+        // get first day of month
+        $time_str = "01-{$months_en[$key]}-{$mybb->settings['inplaykalender_year']}"; // pattern: d-F-Y
+        $first_day = date('w', strtotime($time_str));
+        
+        //get last day of month
+        $time_str = "{$number_days}-{$months_en[$key]}-{$mybb->settings['inplaykalender_year']}"; // pattern: d-F-Y
+        $last_day = date('w', strtotime($time_str));
+        
+        // get empty table datas (e.g. month starts on thursday)
+        for($j = 0; $j < $first_day; $j++) {
+            eval("\$day_calendar_bit .= \"".$templates->get("inplaykalender_no_day_bit")."\";");
+            $days++;
+            if($days == 7) {
+                $day_calendar_bit .= "</tr><tr>";
+                $days = 0;
             }
-            // get month's days table datas            
-            for($i = 1; $i <= $number_days; $i++) {
-                $date = strtotime("{$i}-{$months_en[$key]}-{$mybb->settings['inplaykalender_year']}");
-                $title = $i;
-                $event = "";
-                
-                // get inplay scenes
-                $szenen = false;
-                $query = $db->query("SELECT * FROM ".TABLE_PREFIX."threads WHERE ipdate = '$date'");
-                if(mysqli_num_rows($query) > 0) {
-                    $title = "<a href=\"inplaykalender.php#{$date}\" target=\"blank\"><strong>{$i}</strong></a>";
-                    $szenen = true;
-                }
-                
-                // get birthdays
-                $birthday = false;
-                $fulldate = date("j.m.", $date);                
-                $query = $db->query("SELECT * FROM ".TABLE_PREFIX."characters WHERE birthday LIKE '$fulldate%'");
-                if(mysqli_num_rows($query) > 0) {
-                    $title = "<a href=\"inplaykalender.php#{$date}\" target=\"blank\"><strong>{$i}</strong></a>";
-                    $birthday = true;
-                }
-                
-                // get timeline events
-                $timeline = false;
-                $query = $db->query("SELECT * FROM ".TABLE_PREFIX."timeline WHERE date = '$date'");
-                if(mysqli_num_rows($query) > 0) {
-                    $title = "<a href=\"inplaykalender.php#{$date}\" target=\"blank\"><strong>{$i}</strong></a>";
-                    $timeline = true;
-                }
-                
-                // get calendar events
-                $events = false;
-                $query = $db->query("SELECT * FROM ".TABLE_PREFIX."events");
-                while($event_list = $db->fetch_array($query)) {
-                    if($event_list['starttime'] <= $date && $event_list['endtime'] >= $date) {
-                        $title = "<a href=\"inplaykalender.php#{$date}\" target=\"blank\"><strong>{$i}</strong></a>";
-                        $events = true;
-                    }
-                }
-                
-                // check for all available events
-                if($szenen) {
-                    $event = "szenen";
-                }
-                if($birthday) {
-                    $event = "geburtstag";
-                }
-                if($timeline) {
-                    $event = "timeline";
-                }
-                if($events) {
-                    $event = "event";
-                }
-                if($szenen && $birthday) {
-                    $event = "szenengeburtstag";
-                }
-                if($szenen && $timeline) {
-                    $event = "szenentimeline";
-                }
-                if($szenen && $events) {
-                    $event = "szenenevent";
-                }
-                if($birthday && $timeline) {
-                    $event = "geburtstagtimeline";
-                }
-                if($birthday && $events) {
-                    $event = "geburtstagevent";
-                }
-                if($timeline && $events) {
-                    $event = "timelineevent";
-                }
-                if($szenen && $birthday && $timeline) {
-                    $event = "szenengeburtstagtimeline";
-                }
-                if($szenen && $birthday && $events) {
-                    $event = "szenengeburtstagevent";
-                }
-                if($szenen && $timeline && $events) {
-                    $event = "szenentimelineevent";
-                }
-                if($birthday && $timeline && $events) {
-                    $event = "geburtstagtimelineevent";
-                }
-                if($szenen && $birthday && $timeline && $events) {
-                    $event = "szenengeburtstagtimelineevent";
-                }
+        }
 
-                eval("\$day_calendar_bit .= \"".$templates->get("inplaykalender_day_bit")."\";");
-                $days++;
-                if($days == 7) {
-                    $day_calendar_bit .= "</tr><tr>";
-                    $days = 0;
+        // get month's days table datas            
+        for($i = 1; $i <= $number_days; $i++) {
+            $date = strtotime("{$i}-{$months_en[$key]}-{$mybb->settings['inplaykalender_year']}");
+            $title = $i;
+            $event = "";
+            
+            // get inplay scenes
+            $szenen = false;
+            $query = $db->query("SELECT * FROM ".TABLE_PREFIX."threads WHERE ipdate = '$date'");
+            if(mysqli_num_rows($query) > 0) {
+                $szenen = true;
+            }
+            
+            // get birthdays
+            $birthday = false;
+            $fulldate = date("j.m.", $date);                
+            $query = $db->query("SELECT * FROM ".TABLE_PREFIX."characters WHERE birthday LIKE '$fulldate%'");
+            if(mysqli_num_rows($query) > 0) {
+                $birthday = true;
+            }
+            
+            // get timeline events
+            $timeline = false;
+            $query = $db->query("SELECT * FROM ".TABLE_PREFIX."timeline WHERE date = '$date'");
+            if(mysqli_num_rows($query) > 0) {
+                $timeline = true;
+            }
+            
+            // get calendar events
+            $events = false;
+            $query = $db->query("SELECT * FROM ".TABLE_PREFIX."events");
+            while($event_list = $db->fetch_array($query)) {
+                if($event_list['starttime'] <= $date && $event_list['endtime'] >= $date) {
+                    $title = "<a href=\"inplaykalender.php#{$date}\" target=\"blank\"><strong>{$i}</strong></a>";
+                    $events = true;
                 }
             }
             
-            // get empty table datas (e.g. month ends on saturday)
-            for($k = $last_day + 1; $k <= 6; $k++) {
-                eval("\$day_calendar_bit .= \"".$templates->get("inplaykalender_no_day_bit")."\";");
-                $days++;
-                if($days == 7) {
-                    $day_calendar_bit .= "</tr><tr>";
-                    $days = 0;
+            // set css class and format day link 
+            $list_of_events = array("$lang->inplaykalender_class_scenes" => $szenen, "$lang->inplaykalender_class_birthday" => $birthday, "$lang->inplaykalender_class_timeline" => $timeline, "$lang->inplaykalender_class_event" => $events);
+            foreach($list_of_events as $class => $single_event) {
+                if($single_event) {
+                    $event .= $class;
+                    $title = "<a href=\"inplaykalender.php#{$date}\" target=\"blank\"><strong>{$i}</strong></a>";
                 }
             }
-        // get table width
+
+            // get day template
+            eval("\$day_calendar_bit .= \"".$templates->get("inplaykalender_day_bit")."\";");
+            $days++;
+            // check for full week
+            if($days == 7) {
+                $day_calendar_bit .= "</tr><tr>";
+                $days = 0;
+            }
+        }
+        
+        // get empty table datas (e.g. month ends on saturday)
+        for($k = $last_day + 1; $k <= 6; $k++) {
+            eval("\$day_calendar_bit .= \"".$templates->get("inplaykalender_no_day_bit")."\";");
+            $days++;
+            if($days == 7) {
+                $day_calendar_bit .= "</tr><tr>";
+                $days = 0;
+            }
+        }
+        // get table width & max 3 months per row
         $width = 100 / $months_count;
         $width = $width - 1;
-                eval("\$header_inplaykalender_bit .= \"".$templates->get("header_inplaykalender_bit")."\";");
+        if($width > 32) {
+            $width = 32;
+        }
+        eval("\$header_inplaykalender_bit .= \"".$templates->get("header_inplaykalender_bit")."\";");
     }
     if($mybb->usergroup['cancp'] == "1") {
         eval("\$header_inplaykalender = \"".$templates->get("header_inplaykalender")."\";");
@@ -401,11 +367,7 @@ function inplaykalender_editpost_start()
     if($pid == $thread['firstpost'] && preg_match("/$board/i", $forum['parentlist'])) {
         $query = $db->query("SELECT name, eid FROM ".TABLE_PREFIX."events");
         while($eventlist = $db->fetch_array($query)) {
-            $checked_event = "";
-            if($thread['event'] == $eventlist['eid']) {
-                $checked_event = "selected=\"selected\"";
-            }
-            $select_event .= "<option value=\"$eventlist[eid]\" {$checked_event}>$eventlist[name]</option>";
+            $select_event .= "<option value=\"$eventlist[eid]\">$eventlist[name]</option>";
         }
         eval("\$select_event = \"".$templates->get("newthread_inplaykalender_event")."\";");
     }

@@ -67,7 +67,6 @@ if(empty($action)) {
                 $szenen = false;
                 $query = $db->query("SELECT * FROM ".TABLE_PREFIX."threads WHERE ipdate = '$date'");
                 if(mysqli_num_rows($query) > 0) {
-                    $title = "<a href=\"#{$date}\"><strong>{$i}</strong></a>";
                     $szenen = true;
                 }
                 
@@ -76,7 +75,6 @@ if(empty($action)) {
                 $fulldate = date("j.m.", $date);                
                 $query = $db->query("SELECT * FROM ".TABLE_PREFIX."characters WHERE birthday LIKE '$fulldate%'");
                 if(mysqli_num_rows($query) > 0) {
-                    $title = "<a href=\"#{$date}\"><strong>{$i}</strong></a>";
                     $birthday = true;
                 }
                 
@@ -84,7 +82,6 @@ if(empty($action)) {
                 $timeline = false;
                 $query = $db->query("SELECT * FROM ".TABLE_PREFIX."timeline WHERE date = '$date'");
                 if(mysqli_num_rows($query) > 0) {
-                    $title = "<a href=\"#{$date}\"><strong>{$i}</strong></a>";
                     $timeline = true;
                 }
                 
@@ -93,56 +90,17 @@ if(empty($action)) {
                 $query = $db->query("SELECT * FROM ".TABLE_PREFIX."events");
                 while($event_list = $db->fetch_array($query)) {
                     if($event_list['starttime'] <= $date && $event_list['endtime'] >= $date) {
-                        $title = "<a href=\"#{$date}\"><strong>{$i}</strong></a>";
                         $events = true;
                     }
                 }
                 
-                // check for all available events
-                if($szenen) {
-                    $event = "szenen";
-                }
-                if($birthday) {
-                    $event = "geburtstag";
-                }
-                if($timeline) {
-                    $event = "timeline";
-                }
-                if($events) {
-                    $event = "event";
-                }
-                if($szenen && $birthday) {
-                    $event = "szenengeburtstag";
-                }
-                if($szenen && $timeline) {
-                    $event = "szenentimeline";
-                }
-                if($szenen && $events) {
-                    $event = "szenenevent";
-                }
-                if($birthday && $timeline) {
-                    $event = "geburtstagtimeline";
-                }
-                if($birthday && $events) {
-                    $event = "geburtstagevent";
-                }
-                if($timeline && $events) {
-                    $event = "timelineevent";
-                }
-                if($szenen && $birthday && $timeline) {
-                    $event = "szenengeburtstagtimeline";
-                }
-                if($szenen && $birthday && $events) {
-                    $event = "szenengeburtstagevent";
-                }
-                if($szenen && $timeline && $events) {
-                    $event = "szenentimelineevent";
-                }
-                if($birthday && $timeline && $events) {
-                    $event = "geburtstagtimelineevent";
-                }
-                if($szenen && $birthday && $timeline && $events) {
-                    $event = "szenengeburtstagtimelineevent";
+                $list_of_events = array("$lang->inplaykalender_class_scenes" => $szenen, "$lang->inplaykalender_class_birthday" => $birthday, "$lang->inplaykalender_class_timeline" => $timeline, "$lang->inplaykalender_class_event" => $events);
+                foreach($list_of_events as $class => $single_event) {
+                    if($single_event) {
+                        $event .= $class;
+                        $title = "<a href=\"#{$date}\" target=\"blank\"><strong>{$i}</strong></a>";
+                        eval("\$day_popup = \"".$templates->get("inplaykalender_day_bit_popup")."\";");
+                    }
                 }
 
                 eval("\$day_bit .= \"".$templates->get("inplaykalender_day_bit")."\";");

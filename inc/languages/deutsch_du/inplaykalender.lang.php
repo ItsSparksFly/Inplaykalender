@@ -6,6 +6,12 @@ $l['inplaykalender_jahr'] = "Jahr";
 $l['inplaykalender_add'] = "Event hinzuf&uuml;gen";
 $l['inplaykalender_events'] = "Inplay-Events";
 
+// klassen
+$l['inplaykalender_class_scenes'] = "szenen";
+$l['inplaykalender_class_birthday'] = "geburtstag";
+$l['inplaykalender_class_timeline'] = "timeline";
+$l['inplaykalender_class_event'] = "event";
+
 // monate
 $l['inplaykalender_januar'] = "Januar";
 $l['inplaykalender_februar'] = "Februar";
