@@ -29,104 +29,112 @@ $month = $mybb->input['m'];
 $months = array(1 => $lang->inplaykalender_januar, $lang->inplaykalender_februar, $lang->inplaykalender_maerz, $lang->inplaykalender_april, $lang->inplaykalender_mai, $lang->inplaykalender_juni, $lang->inplaykalender_juli, $lang->inplaykalender_august, $lang->inplaykalender_september, $lang->inplaykalender_oktober, $lang->inplaykalender_november, $lang->inplaykalender_dezember);
 $months_en = array(1 => $lang->inplaykalender_januar_en, $lang->inplaykalender_februar_en, $lang->inplaykalender_maerz_en, $lang->inplaykalender_april_en, $lang->inplaykalender_mai_en, $lang->inplaykalender_juni_en, $lang->inplaykalender_juli_en, $lang->inplaykalender_august_en, $lang->inplaykalender_september_en, $lang->inplaykalender_oktober_en, $lang->inplaykalender_november_en, $lang->inplaykalender_dezember_en);
 // get days as array
-$days = array($lang->inplaykalender_sonntag, $lang->inplaykalender_montag, $lang->inplaykalender_dienstag, $lang->inplaykalender_mittwoch, $lang->inplaykalender_donnerstag, $lang->inplaykalender_freitag, $lang->inplaykalender_samstag);
+$all_days = array($lang->inplaykalender_sonntag, $lang->inplaykalender_montag, $lang->inplaykalender_dienstag, $lang->inplaykalender_mittwoch, $lang->inplaykalender_donnerstag, $lang->inplaykalender_freitag, $lang->inplaykalender_samstag);
 
 // landing page
 if(empty($action)) {
-    if(empty($month)) {
-        foreach($months as $id => $month)  {
-            $days = 0;
-            $day_bit = "";
-            // get days in month of the selected year
-            $number_days = cal_days_in_month(CAL_GREGORIAN, $id, $year);
+    foreach($months as $id => $month)  {
+        $days = 0;
+        $day_bit = "";
+        // get days in month of the selected year
+        $number_days = cal_days_in_month(CAL_GREGORIAN, $id, $year);
+        
+        // get first day of month
+        $time_str = "01-{$months_en[$id]}-{$year}"; // pattern: d-F-Y
+        $first_day = date('w', strtotime($time_str));
+        
+        //get last day of month
+        $time_str = "{$number_days}-{$months_en[$id]}-{$year}"; // pattern: d-F-Y
+        $last_day = date('w', strtotime($time_str));
+        
+        // get empty table datas (e.g. month starts on thursday)
+        for($j = 0; $j < $first_day; $j++) {
+            eval("\$day_bit .= \"".$templates->get("inplaykalender_no_day_bit")."\";");
+            $days++;
+            if($days == 7) {
+                $day_bit .= "</tr><tr>";
+                $days = 0;
+            }
+        }
+        // get month's days table datas            
+        for($i = 1; $i <= $number_days; $i++) {
+            $date = strtotime("{$i}-{$months_en[$id]}-{$year}");
+            $title = $i;
+            $event = "";
             
-            // get first day of month
-            $time_str = "01-{$months_en[$id]}-{$year}"; // pattern: d-F-Y
-            $first_day = date('w', strtotime($time_str));
+            // get inplay scenes
+            $szenen = false;
+            $query = $db->query("SELECT * FROM ".TABLE_PREFIX."threads WHERE ipdate = '$date'");
+            if(mysqli_num_rows($query) > 0) {
+                $szenen = true;
+            }
             
-            //get last day of month
-            $time_str = "{$number_days}-{$months_en[$id]}-{$year}"; // pattern: d-F-Y
-            $last_day = date('w', strtotime($time_str));
+            // get birthdays
+            $birthday = false;
+            $fulldate = date("j.m.", $date);                
+            $query = $db->query("SELECT * FROM ".TABLE_PREFIX."characters WHERE birthday LIKE '$fulldate%'");
+            if(mysqli_num_rows($query) > 0) {
+                $birthday = true;
+            }
             
-            // get empty table datas (e.g. month starts on thursday)
-            for($j = 0; $j < $first_day; $j++) {
-                eval("\$day_bit .= \"".$templates->get("inplaykalender_no_day_bit")."\";");
-                $days++;
-                if($days == 7) {
-                    $day_bit .= "</tr><tr>";
-                    $days = 0;
+            // get timeline events
+            $timeline = false;
+            $query = $db->query("SELECT * FROM ".TABLE_PREFIX."timeline WHERE date = '$date'");
+            if(mysqli_num_rows($query) > 0) {
+                $timeline = true;
+            }
+            
+            // get calendar events
+            $events = false;
+            $query = $db->query("SELECT * FROM ".TABLE_PREFIX."events");
+            while($event_list = $db->fetch_array($query)) {
+                if($event_list['starttime'] <= $date && $event_list['endtime'] >= $date) {
+                    $events = true;
                 }
             }
-            // get month's days table datas            
-            for($i = 1; $i <= $number_days; $i++) {
-                $date = strtotime("{$i}-{$months_en[$id]}-{$year}");
-                $title = $i;
-                $event = "";
-                
-                // get inplay scenes
-                $szenen = false;
-                $query = $db->query("SELECT * FROM ".TABLE_PREFIX."threads WHERE ipdate = '$date'");
-                if(mysqli_num_rows($query) > 0) {
-                    $szenen = true;
-                }
-                
-                // get birthdays
-                $birthday = false;
-                $fulldate = date("j.m.", $date);                
-                $query = $db->query("SELECT * FROM ".TABLE_PREFIX."characters WHERE birthday LIKE '$fulldate%'");
-                if(mysqli_num_rows($query) > 0) {
-                    $birthday = true;
-                }
-                
-                // get timeline events
-                $timeline = false;
-                $query = $db->query("SELECT * FROM ".TABLE_PREFIX."timeline WHERE date = '$date'");
-                if(mysqli_num_rows($query) > 0) {
-                    $timeline = true;
-                }
-                
-                // get calendar events
-                $events = false;
-                $query = $db->query("SELECT * FROM ".TABLE_PREFIX."events");
-                while($event_list = $db->fetch_array($query)) {
-                    if($event_list['starttime'] <= $date && $event_list['endtime'] >= $date) {
-                        $events = true;
-                    }
-                }
-                
-                $list_of_events = array("$lang->inplaykalender_class_scenes" => $szenen, "$lang->inplaykalender_class_birthday" => $birthday, "$lang->inplaykalender_class_timeline" => $timeline, "$lang->inplaykalender_class_event" => $events);
+            
+            $list_of_events = array("$lang->inplaykalender_class_scenes" => $szenen, "$lang->inplaykalender_class_birthday" => $birthday, "$lang->inplaykalender_class_timeline" => $timeline, "$lang->inplaykalender_class_event" => $events);
+
+            if(in_array(true, $list_of_events)) {
                 foreach($list_of_events as $class => $single_event) {
                     if($single_event) {
                         $event .= $class;
-                        $title = "<a href=\"#{$date}\" target=\"blank\"><strong>{$i}</strong></a>";
-                        eval("\$day_popup = \"".$templates->get("inplaykalender_day_bit_popup")."\";");
                     }
                 }
+                $week_day_num = date("w", $date);
+                $week_day = $all_days[$week_day_num];
+                $fulldate = date("d.m.Y", $date);
+                $title = "<a href=\"#{$date}\" target=\"blank\"><strong>{$i}</strong></a>";
+                eval("\$day_popup = \"".$templates->get("inplaykalender_day_bit_popup")."\";");
+            }
 
-                eval("\$day_bit .= \"".$templates->get("inplaykalender_day_bit")."\";");
-                $days++;
-                if($days == 7) {
-                    $day_bit .= "</tr><tr>";
-                    $days = 0;
-                }
+
+
+            eval("\$day_bit .= \"".$templates->get("inplaykalender_day_bit")."\";");
+            $days++;
+            if($days == 7) {
+                $day_bit .= "</tr><tr>";
+                $days = 0;
             }
-            
-            // get empty table datas (e.g. month ends on saturday)
-            for($k = $last_day + 1; $k <= 6; $k++) {
-                eval("\$day_bit .= \"".$templates->get("inplaykalender_no_day_bit")."\";");
-                $days++;
-                if($days == 7) {
-                    $day_bit .= "</tr><tr>";
-                    $days = 0;
-                }
-            }
-            eval("\$month_bit .= \"".$templates->get("inplaykalender_month_bit")."\";");
         }
+        
+        // get empty table datas (e.g. month ends on saturday)
+        for($k = $last_day + 1; $k <= 6; $k++) {
+            eval("\$day_bit .= \"".$templates->get("inplaykalender_no_day_bit")."\";");
+            $days++;
+            if($days == 7) {
+                $day_bit .= "</tr><tr>";
+                $days = 0;
+            }
+        }
+        eval("\$month_bit .= \"".$templates->get("inplaykalender_month_bit")."\";");
     }
+
     // set template
     eval("\$page = \"".$templates->get("inplaykalender")."\";");
     output_page($page);
 }
+
 if($action == "add") {
     
     // format date dropdowns
