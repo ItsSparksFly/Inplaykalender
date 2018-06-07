@@ -56,6 +56,7 @@ if(empty($action)) {
                 $days = 0;
             }
         }
+        
         // get month's days table datas            
         for($i = 1; $i <= $number_days; $i++) {
             $date = strtotime("{$i}-{$months_en[$id]}-{$year}");
@@ -95,6 +96,7 @@ if(empty($action)) {
             
             $list_of_events = array("$lang->inplaykalender_class_scenes" => $szenen, "$lang->inplaykalender_class_birthday" => $birthday, "$lang->inplaykalender_class_timeline" => $timeline, "$lang->inplaykalender_class_event" => $events);
 
+            // if there's an event on this day, create popup
             if(in_array(true, $list_of_events)) {
                 foreach($list_of_events as $class => $single_event) {
                     if($single_event) {
@@ -107,8 +109,6 @@ if(empty($action)) {
                 $title = "<a href=\"#{$date}\" target=\"blank\"><strong>{$i}</strong></a>";
                 eval("\$day_popup = \"".$templates->get("inplaykalender_day_bit_popup")."\";");
             }
-
-
 
             eval("\$day_bit .= \"".$templates->get("inplaykalender_day_bit")."\";");
             $days++;
