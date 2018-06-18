@@ -60,4 +60,8 @@ $l['inplaykalender_added'] = "Dein Event wurde hinzugef&uuml;gt!";
 $l['inplaykalender_event_thread'] = "Verkn&uuml;pftes Event";
 $l['inplaykalender_event_thread_desc'] = "Zu welchem Event geh&ouml;rt diese Szene?";
 $l['inplaykalender_event_thread_select'] = "Event ausw&auml;hlen";
+
+$l['inplaykalender_scenes'] = "Inplayszenen";
+$l['inplaykalender_birthday'] = "Geburtstage";
+$l['inplaykalender_timeline'] = "Chronik-Events";
  ?>

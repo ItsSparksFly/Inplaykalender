@@ -56,9 +56,10 @@ if(empty($action)) {
                 $days = 0;
             }
         }
-        
+
         // get month's days table datas            
         for($i = 1; $i <= $number_days; $i++) {
+            $day_popup = "";
             $date = strtotime("{$i}-{$months_en[$id]}-{$year}");
             $title = $i;
             $event = "";
@@ -106,7 +107,7 @@ if(empty($action)) {
                 $week_day_num = date("w", $date);
                 $week_day = $all_days[$week_day_num];
                 $fulldate = date("d.m.Y", $date);
-                $title = "<a href=\"#{$date}\" target=\"blank\"><strong>{$i}</strong></a>";
+                $title = "<a href=\"#{$date}\"><strong>{$i}</strong></a>";
                 eval("\$day_popup = \"".$templates->get("inplaykalender_day_bit_popup")."\";");
             }
 
