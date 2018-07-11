@@ -99,6 +99,7 @@ function inplaykalender_install() {
     }
 
     rebuild_settings();
+    #TODO:Templates hinzufügen
 }
 
 function inplaykalender_is_installed() {

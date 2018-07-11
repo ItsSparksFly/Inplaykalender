@@ -176,4 +176,6 @@ if($action == "do_add") {
     // stuff is done, redirect to landing page
     redirect("inplaykalender.php", "{$lang->inplaykalender_added}");
 }
+
+#TODO: Eventseite 
 ?>
