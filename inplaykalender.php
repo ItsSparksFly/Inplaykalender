@@ -73,29 +73,35 @@ if(empty($action)) {
             
             // get birthdays
             $birthday = false;
-            $fulldate = date("j.m.", $date);                
-            $query = $db->query("SELECT * FROM ".TABLE_PREFIX."characters WHERE birthday LIKE '$fulldate%'");
+            $fulldate = date("j-n", $date);                
+            $query = $db->query("SELECT * FROM ".TABLE_PREFIX."users WHERE birthday LIKE '$fulldate-%'");
             if(mysqli_num_rows($query) > 0) {
                 $birthday = true;
             }
             
             // get timeline events
-            $timeline = false;
-            $query = $db->query("SELECT * FROM ".TABLE_PREFIX."timeline WHERE date = '$date'");
-            if(mysqli_num_rows($query) > 0) {
-                $timeline = true;
-            }
-            
-            // get calendar events
-            $events = false;
-            $query = $db->query("SELECT * FROM ".TABLE_PREFIX."events");
-            while($event_list = $db->fetch_array($query)) {
-                if($event_list['starttime'] <= $date && $event_list['endtime'] >= $date) {
-                    $events = true;
+            if($db->table_exists("timeline")) {
+                $timeline = false;
+                $query = $db->query("SELECT * FROM ".TABLE_PREFIX."timeline WHERE date = '$date'");
+                if(mysqli_num_rows($query) > 0) {
+                    $timeline = true;
                 }
             }
             
-            $list_of_events = array("$lang->inplaykalender_class_scenes" => $szenen, "$lang->inplaykalender_class_birthday" => $birthday, "$lang->inplaykalender_class_timeline" => $timeline, "$lang->inplaykalender_class_event" => $events);
+            // get plots
+            if($db->table_exists("plots")) {
+                $plots = false;
+                $query = $db->query("SELECT * FROM ".TABLE_PREFIX."plots");
+                $plotlist = "";
+                while($plot_list = $db->fetch_array($query)) {
+                    if($plot_list['startdate'] <= $date && $plot_list['enddate'] >= $date) {
+                        $plots = true;
+                        $plotlist .= "&bull; <a href=\"plottracker.php?action=view&plid={$plot_list['plid']}\" target=\"_blank\">{$plot_list['name']}</a>";
+                    } else { $plotlist = ""; }
+                }
+            }
+            
+            $list_of_events = array("$lang->inplaykalender_class_scenes" => $szenen, "$lang->inplaykalender_class_birthday" => $birthday, "$lang->inplaykalender_class_timeline" => $timeline, "$lang->inplaykalender_class_event" => $plots);
 
             // if there's an event on this day, create popup
             if(in_array(true, $list_of_events)) {
@@ -176,6 +182,4 @@ if($action == "do_add") {
     // stuff is done, redirect to landing page
     redirect("inplaykalender.php", "{$lang->inplaykalender_added}");
 }
-
-#TODO: Eventseite 
 ?>

@@ -27,35 +27,6 @@ function inplaykalender_info(){
 function inplaykalender_install() {
     global $mybb, $db;
 
-    if(!$db->table_exists("events")) {
-        $db->query("CREATE TABLE `mybb_events` (
-            `eid` int(11) NOT NULL AUTO_INCREMENT,
-            `uid` int(11) NOT NULL,
-            `name` text NOT NULL,
-            `description` text NOT NULL,
-            `starttime` varchar(20) NOT NULL,
-            `endtime` varchar(20) NOT NULL,
-            `accepted` int(1) NOT NULL,
-            PRIMARY KEY (`eid`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;");
-    }
-
-  switch($db->type)
-  {
-    case "pgsql":
-      $db->add_column("threads", "event", "text NOT NULL");
-      $db->add_column("posts", "event", "text NOT NULL");
-    break;
-        case "sqlite":
-      $db->add_column("threads", "event", "text NOT NULL");
-      $db->add_column("posts", "event", "text NOT NULL");
-    break;
-        default:
-    $db->add_column("threads", "event", "text NOT NULL");
-    $db->add_column("posts", "event", "text NOT NULL");
-    break;
-  }
-
     $setting_group = array(
         'name' => 'inplaykalender',
         'title' => 'Inplaykalender Einstellungen',
@@ -99,36 +70,230 @@ function inplaykalender_install() {
     }
 
     rebuild_settings();
-    #TODO:Templates hinzufügen
+    
+    $header_inplaykalender = [
+        'title'        => 'header_inplaykalender',
+        'template'    => $db->escape_string('<div id="container">
+        <table cellspacing="3" cellpadding="3" class="tborder trow2">
+            <tr>
+                <td colspan="2">
+                    <div class="header-top"><i class="fa fa-calendar" aria-hidden="true"></i> Inplay-Info &raquo; Spieljahr: <strong>{$mybb->settings[\'inplaykalender_year\']}</strong> &raquo; <a href="inplaykalender.php" target="blank">[ <i class="fa fa-arrow-right" aria-hidden="true"></i> Zum <em>Kalender</em> ]</a></div>
+                </td>
+            </tr>
+            <tr>
+                <td width="23%" valign="top">
+                    <div class="header-box" style="height: 175px;">
+    <div class="header-text" style="height: 175px;">{$mybb->settings[\'inplaykalender_text\']}</div></div></td>
+                <td>{$header_inplaykalender_bit}</td>
+            </tr>
+        </table>
+ </div>'),
+            'sid'        => '-1',
+            'version'    => '',
+            'dateline'    => TIME_NOW
+    ];
+
+    $db->insert_query("templates", $header_inplaykalender);
+
+    $header_inplaykalender_bit = [
+        'title'        => 'header_inplaykalender_bit',
+        'template'    => $db->escape_string('<div style="float: left; margin: 3px; margin-top: 0px; width: {$width}%; height: 175px;">
+        <table cellspacing="1" cellpadding="1" class="tborder" id="mini-kalender">
+            <tr>
+                <td colspan="7" class="tcat" align="center">{$month} {$year}</td>
+            </tr>
+            <tr align="center" style="font-weight: bold;">
+                <td class="thead">Sun</td>
+                <td class="thead">Mon</td>
+                <td class="thead">Tue</td>
+                <td class="thead">Wed</td>
+                <td class="thead">Thu</td>
+                <td class="thead">Fri</td>
+                <td class="thead">Sat</td>
+            </tr>
+            <tr>
+            </tr>
+                <tr>
+                    {$day_calendar_bit}
+                </tr>
+        </table>
+    </div>'),
+            'sid'        => '-1',
+            'version'    => '',
+            'dateline'    => TIME_NOW
+    ];
+
+    $db->insert_query("templates", $header_inplaykalender_bit);
+
+    $inplaykalender = [
+        'title'        => 'inplaykalender',
+        'template'    => $db->escape_string('<html>
+        <head>
+        <title>{$mybb->settings[\'bbname\']} - {$lang->inplaykalender}</title>
+        {$headerinclude}
+        </head>
+        <body>
+        {$header}
+        <table width="100%" border="0" align="center">
+        <tr>
+        <td width="20%" valign="top">
+        {$menu}
+        </td>
+        <td valign="top">
+        <table border="0" cellspacing="{$theme[\'borderwidth\']}" cellpadding="{$theme[\'tablespace\']}" class="tborder">
+        <tr>
+        <td class="thead"><strong>{$lang->inplaykalender}</strong></td>
+        </tr>
+        <tr>
+        <td class="trow2" style="padding: 10px; text-align: justify;">
+        <div style="width: 95%; margin: auto; padding: 8px;  font-size: 12px; line-height: 1.5em;">
+            <table cellspacing="5" cellpadding="5" style="margin: 10px auto; font-size: 8px; text-align: center; text-transform: uppercase;">
+                <tr>
+                    <td class="szenen"><strong>Inplay-Szenen</strong></td>
+                    <td class="event"><strong>Events</strong></td>
+					<td class="timeline"><strong>Plots</strong></td>
+					<td class="geburtstag"><strong>Eigene Termine</strong></td>
+                </tr>
+            </table>
+            {$month_bit}
+        </div>
+        </td>
+        </tr>
+        </table>
+        </td>
+        </tr>
+        </table>
+        {$footer}
+        </body>
+        </html>'),
+            'sid'        => '-1',
+            'version'    => '',
+            'dateline'    => TIME_NOW
+    ];
+
+    $db->insert_query("templates", $inplaykalender);
+
+    $inplaykalender_nav = [
+        'title'        => 'inplaykalender_nav',
+        'template'    => $db->escape_string('<table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder con-nav">
+        <tbody>
+            <tr>
+                <td class="thead"><strong>Navigation</strong></td>
+            </tr>
+            <tr>
+                <td class="trow2 smalltext"><i class="fa fa-calendar" aria-hidden="true"></i> <a href="inplaykalender.php">Kalender</a></td>
+            </tr>
+        </tbody>
+</table>'),
+            'sid'        => '-1',
+            'version'    => '',
+            'dateline'    => TIME_NOW
+    ];
+
+    $db->insert_query("templates", $inplaykalender_nav);
+
+    $inplaykalender_no_day_bit = [
+        'title'        => 'inplaykalender_no_day_bit',
+        'template'    => $db->escape_string('<td class="inplaykalender_tag">
+	
+        </td>'),
+            'sid'        => '-1',
+            'version'    => '',
+            'dateline'    => TIME_NOW
+    ];
+
+    $db->insert_query("templates", $inplaykalender_no_day_bit);
+
+    $inplaykalender_day_bit = [
+        'title'        => 'inplaykalender_day_bit',
+        'template'    => $db->escape_string('<td class="inplaykalender_tag trow2 {$event}">
+        {$title}
+	    {$day_popup}
+  </td>'),
+            'sid'        => '-1',
+            'version'    => '',
+            'dateline'    => TIME_NOW
+    ];
+
+    $db->insert_query("templates", $inplaykalender_day_bit);
+
+    #TODO: Template korrigieren
+    $inplaykalender_day_bit_popup = [
+        'title'        => 'inplaykalender_day_bit_popup',
+        'template'    => $db->escape_string('<div id="{$date}" class="calpop">
+        <div class="pop">
+		<div class="category">{$week_day} - {$fulldate}</div>
+			<div class="thead">Szenen</div>
+			<div style="margin: 5px 40px;">
+			{$threadlist}
+			</div>
+			<br /><br /><div class="thead">Plots</div>
+			<div style="margin: 5px 40px;">
+				{$plotlist}</div>
+			<br /><br /><div class="thead">Events</div>
+			<div style="margin: 5px 40px;">
+				{$eventlist}</div>
+        </div>
+        <a href="#closepop" class="closepop"></a>
+</div>'),
+            'sid'        => '-1',
+            'version'    => '',
+            'dateline'    => TIME_NOW
+    ];
+
+    $db->insert_query("templates", $inplaykalender_day_bit_popup);
+
+    $inplaykalender_month_bit = [
+        'title'        => 'inplaykalender_month_bit',
+        'template'    => $db->escape_string('<div style="float: left; margin: 3px; width: 49%; height: 230px;">
+        <table cellspacing="1" cellpadding="3" class="tborder">
+            <tr>
+                <td colspan="7" class="thead" align="center">{$month} {$year}</td>
+            </tr>
+            <tr align="center" style="font-weight: bold;">
+                <td class="tcat">Sun</td>
+                <td class="tcat">Mon</td>
+                <td class="tcat">Tue</td>
+                <td class="tcat">Wed</td>
+                <td class="tcat">Thu</td>
+                <td class="tcat">Fri</td>
+                <td class="tcat">Sat</td>
+            </tr>
+            <tr>
+            </tr>
+                <tr>
+                    {$day_bit}
+                </tr>
+        </table>
+    </div>'),
+            'sid'        => '-1',
+            'version'    => '',
+            'dateline'    => TIME_NOW
+    ];
+
+    $db->insert_query("templates", $inplaykalender_month_bit);
+
 }
 
 function inplaykalender_is_installed() {
     global $db;
 
+    #TODO: find method
     if($db->table_exists("events")) {
         return true;
     }
+    
     return false;
 }
 
 function inplaykalender_uninstall() {
     global $db;  
 
-    if($db->table_exists("events")) {
-        $db->query("DROP TABLE `mybb_events`");
-    }
-
-    if($db->field_exists("event", "threads")) {
-        $db->drop_column("threads", "event");
-    }
-    if($db->field_exists("event", "posts"))
-    {
-        $db->drop_column("posts", "event");
-    }
-
     $db->delete_query('settings', "name LIKE 'inplaykalender%'");
     $db->delete_query('settinggroups', "name = 'inplaykalender'");
     rebuild_settings();
+
+    #TODO: delete templates
 }
 
 function inplaykalender_activate() {
@@ -173,7 +338,17 @@ function inplaykalender_activate() {
         .szenengeburtstagtimelineevent { background: linear-gradient(to left top, #EBD39D 25%, #C8B6CC 25%, #C8B6CC 50%, #BADBAF 50%, #BADBAF 75%, #ABD9D8 75%); }
 
         #mini-kalender { font-size: 7px; }
-        #mini-kalender td { padding: 5px; }',
+        #mini-kalender td { padding: 5px; }
+        .calpop { position: fixed; top: 0; right: 0; bottom: 0; left: 0; background: rgba(0,0,0,.5); z-index: 1000; opacity:0; -webkit-transition: .5s ease-in-out; -moz-transition: .5s ease-in-out; transition: .5s ease-in-out; pointer-events: none; } 
+
+
+        .calpop:target { opacity:1; pointer-events: auto; }
+
+        .calpop > .pop { text-align: justify; background: rgba(255,255,255,8); width: 800px; position: relative; margin: 5% auto; padding: 10px; z-index: 1002; font-size: 11px; }
+
+        .closepop { position: absolute; right: -5px; top:-5px; width: 100%; height: 100%; z-index: 999; }
+
+        .inplaykalender-eventlist { max-height: 50px; overflow: auto; padding-right: 5px;}',
         'cachefile' => $db->escape_string(str_replace('/', '', inplaykalender.css)),
         'lastmodified' => time()
     );
@@ -189,8 +364,7 @@ function inplaykalender_activate() {
     }
 
     include MYBB_ROOT."/inc/adminfunctions_templates.php";
-    find_replace_templatesets("newthread", "#".preg_quote('{$loginbox}')."#i", '{$select_event}');
-    find_replace_templatesets("editpost", "#".preg_quote('{$loginbox}')."#i", '{$select_event}');
+    find_replace_templatesets("header", "#".preg_quote('<navigation>')."#i", '{$header_inplaykalender}<br /><navigation>');
 }
 
 function inplaykalender_deactivate() {
@@ -205,8 +379,7 @@ function inplaykalender_deactivate() {
     }
 
     include MYBB_ROOT."/inc/adminfunctions_templates.php";
-    find_replace_templatesets("newthread", "#".preg_quote('{$select_event}')."#i", '', 0);
-    find_replace_templatesets("editpost", "#".preg_quote('{$select_event}')."#i", '', 0);
+    find_replace_templatesets("header", "#".preg_quote('{$header_inplaykalender}<br />')."#i", '', 0);
 }
 
 function inplaykalender_global() {
@@ -265,31 +438,42 @@ function inplaykalender_global() {
             
             // get birthdays
             $birthday = false;
-            $fulldate = date("j.m.", $date);                
-            $query = $db->query("SELECT * FROM ".TABLE_PREFIX."characters WHERE birthday LIKE '$fulldate%'");
+            $fulldate = date("j-n", $date);                
+            $query = $db->query("SELECT * FROM ".TABLE_PREFIX."users WHERE birthday LIKE '$fulldate-%'");
             if(mysqli_num_rows($query) > 0) {
                 $birthday = true;
             }
+
+			$birthdayusers = "";
+			while($user = $db->fetch_array($query)) {
+				$profilelink = build_profile_link($user['username'], $user['uid']);
+				$birthdayusers .= "{$profilelink} <br />";
+			}
             
             // get timeline events
-            $timeline = false;
-            $query = $db->query("SELECT * FROM ".TABLE_PREFIX."timeline WHERE date = '$date'");
-            if(mysqli_num_rows($query) > 0) {
-                $timeline = true;
-            }
+            if($db->table_exists("timeline")) {
+                $timeline = false;
+                $query = $db->query("SELECT * FROM ".TABLE_PREFIX."timeline WHERE date = '$date'");
+                if(mysqli_num_rows($query) > 0) {
+                    $timeline = true;
+                }
+            }   
             
-            // get calendar events
-            $events = false;
-            $query = $db->query("SELECT * FROM ".TABLE_PREFIX."events");
-            while($event_list = $db->fetch_array($query)) {
-                if($event_list['starttime'] <= $date && $event_list['endtime'] >= $date) {
-                    $title = "<a href=\"inplaykalender.php#{$date}\" target=\"blank\"><strong>{$i}</strong></a>";
-                    $events = true;
+            // get plots
+            if($db->table_exists("plots")) {
+                $plots = false;
+                $query = $db->query("SELECT * FROM ".TABLE_PREFIX."plots");
+                $plotlist = "";
+                while($plot_list = $db->fetch_array($query)) {
+                    if($plot_list['startdate'] <= $date && $plot_list['enddate'] >= $date) {
+                        $plots = true;
+                        $plotlist .= "&bull; <a href=\"plottracker.php?action=view&plid={$plot_list['plid']}\" target=\"_blank\">{$plot_list['name']}</a>";
+                    } else { $plotlist = ""; }
                 }
             }
             
             // set css class and format day link 
-            $list_of_events = array("$lang->inplaykalender_class_scenes" => $szenen, "$lang->inplaykalender_class_birthday" => $birthday, "$lang->inplaykalender_class_timeline" => $timeline, "$lang->inplaykalender_class_event" => $events);
+            $list_of_events = array("$lang->inplaykalender_class_scenes" => $szenen, "$lang->inplaykalender_class_birthday" => $birthday, "$lang->inplaykalender_class_timeline" => $timeline, "$lang->inplaykalender_class_event" => $plots);
             foreach($list_of_events as $class => $single_event) {
                 if($single_event) {
                     $event .= $class;
@@ -327,59 +511,4 @@ function inplaykalender_global() {
     if($mybb->usergroup['cancp'] == "1") {
         eval("\$header_inplaykalender = \"".$templates->get("header_inplaykalender")."\";");
     }
-}
-
-function inplaykalender_newthread()
-{
-    global $lang, $mybb, $cache, $db, $templates, $forum, $select_event;
-    $lang->load('inplaykalender');
-    $board = $mybb->settings['inplaytracker_forum'];
-    $year = $mybb->settings['inplaykalender_year'];
-
-    if(preg_match("/$board/i", $forum['parentlist']))
-    {
-    $query = $db->query("SELECT name, eid FROM ".TABLE_PREFIX."events");
-    while($eventlist = $db->fetch_array($query)) {
-      $select_event .= "<option value=\"$eventlist[eid]\">$eventlist[name]</option>";
-    }
-
-    eval("\$select_event = \"".$templates->get("newthread_inplaykalender_event")."\";");
-
-    }
-}
-
-function inplaykalender_do_newthread()
-{
-  global $mybb, $cache, $db, $tid;
-
-  $new_record = array(
-        "event" => (int)$mybb->get_input('event')
-    );
-    $db->update_query("threads", $new_record, "tid='{$tid}'");
-}
-
-function inplaykalender_editpost_start()
-{
-  global $lang, $mybb, $db, $cache, $templates, $forum, $select_event, $thread, $pid, $checked_event;
-  $lang->load('inplaykalender');
-    $board = $mybb->settings['inplaytracker_forum'];
-    $year = $mybb->settings['inplaykalender_year'];
-
-    if($pid == $thread['firstpost'] && preg_match("/$board/i", $forum['parentlist'])) {
-        $query = $db->query("SELECT name, eid FROM ".TABLE_PREFIX."events");
-        while($eventlist = $db->fetch_array($query)) {
-            $select_event .= "<option value=\"$eventlist[eid]\">$eventlist[name]</option>";
-        }
-        eval("\$select_event = \"".$templates->get("newthread_inplaykalender_event")."\";");
-    }
-}   
-
-function inplaykalender_do_editpost()
-{
-    global $db, $mybb, $tid, $pid, $thread;
-
-    $new_record = array(
-        "event" => (int)$mybb->get_input('event')
-    );
-    $db->update_query("threads", $new_record, "tid='{$tid}'");
 }
