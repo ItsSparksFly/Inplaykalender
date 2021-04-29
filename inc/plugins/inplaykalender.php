@@ -478,7 +478,8 @@ function inplaykalender_activate() {
 
         .inplaykalender-eventlist { max-height: 50px; overflow: auto; padding-right: 5px;}',
         'cachefile' => $db->escape_string(str_replace('/', '', inplaykalender.css)),
-        'lastmodified' => time()
+        'lastmodified' => time(),
+        'attachedto' => ''
     );
 
     require_once MYBB_ADMIN_DIR."inc/functions_themes.php";
