@@ -267,6 +267,9 @@ function inplaykalender_install() {
 			<br /><br /><div class="thead">Events</div>
 			<div style="margin: 5px 40px;">
 				{$eventlist}</div>
+                <br /><br /><div class="thead">Geburtstage</div>
+			<div style="margin: 5px 40px;">
+				{$birthdayusers}</div>
         </div>
         <a href="#closepop" class="closepop"></a>
 </div>'),
