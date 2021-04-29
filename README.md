@@ -18,18 +18,18 @@ Der vollständige Kalender des Jahres kann über inplaykalender.php erreicht wer
 <h1>Neue Templates</h1>
 Es wird folgende Templates neu hinzugefügt, ihr findet sie in den globalen Templates: 
 
-[list]
-[*]header_inplaykalender
-[*]header_inplaykalender_bit
-[*]inplaykalender
-[*]inplaykalender_add
-[*]inplaykalender_day_bit
-[*]inplaykalender_day_bit_popup
-[*]inplaykalender_month_bit
-[*]inplaykalender_nav 
-[*]inplaykalender_nav_add 
-[*]inplaykalender_no_day_bit
-[/list]
+<ul>
+<li>header_inplaykalender
+<li>header_inplaykalender_bit
+<li>inplaykalender
+<li>inplaykalender_add
+<li>inplaykalender_day_bit
+<li>inplaykalender_day_bit_popup
+<li>inplaykalender_month_bit
+<li>inplaykalender_nav 
+<li>inplaykalender_nav_add 
+<li>inplaykalender_no_day_bit
+</ul>
 
 <h1>Templateänderungen</h1>
 Dem Header-Template wird die Variable {$header_inplaykalender} hinzugefügt. Sie zeigt den Kalender oben im Header an.
