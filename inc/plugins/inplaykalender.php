@@ -673,7 +673,5 @@ function inplaykalender_global() {
         }
         eval("\$header_inplaykalender_bit .= \"".$templates->get("header_inplaykalender_bit")."\";");
     }
-    if($mybb->usergroup['cancp'] == "1") {
         eval("\$header_inplaykalender = \"".$templates->get("header_inplaykalender")."\";");
-    }
 }
