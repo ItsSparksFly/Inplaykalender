@@ -118,7 +118,7 @@ function inplaykalender_install() {
 
     $header_inplaykalender_bit = [
         'title'        => 'header_inplaykalender_bit',
-        'template'    => $db->escape_string('<div style="float: left; margin: px; margin-top: 0px; width: {$width}%;">
+        'template'    => $db->escape_string('<div style="float: left; margin: 3px; margin-top: 0px; width: {$width}%;">
         <table cellspacing="1" cellpadding="1" class="tborder" id="mini-kalender">
             <tr>
                 <td colspan="7" class="tcat" align="center">{$month} {$year}</td>
