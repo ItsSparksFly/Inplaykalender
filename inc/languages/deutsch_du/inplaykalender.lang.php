@@ -48,7 +48,7 @@ $l['inplaykalender_freitag'] = "Freitag";
 $l['inplaykalender_samstag'] = "Samstag";
 $l['inplaykalender_sonntag'] = "Sonntag";
 
-// event hinzufügen
+// event hinzufï¿½gen
 $l['inplaykalender_event_name'] = "Name des Events";
 $l['inplaykalender_event_date'] = "Datum";
 $l['inplaykalender_event_date_start'] = "Startdatum";
@@ -56,7 +56,7 @@ $l['inplaykalender_event_date_end'] = "Enddatum";
 $l['inplaykalender_event_desc'] = "Beschreibung";
 $l['inplaykalender_added'] = "Dein Event wurde hinzugef&uuml;gt!";
 
-// thread an event knüpfen
+// thread an event knï¿½pfen
 $l['inplaykalender_event_thread'] = "Verkn&uuml;pftes Event";
 $l['inplaykalender_event_thread_desc'] = "Zu welchem Event geh&ouml;rt diese Szene?";
 $l['inplaykalender_event_thread_select'] = "Event ausw&auml;hlen";

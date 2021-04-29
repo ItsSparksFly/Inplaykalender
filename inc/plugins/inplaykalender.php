@@ -5,6 +5,8 @@ if(!defined("IN_MYBB")) {
     die("Direct initialization of this file is not allowed.");
 }
 
+$plugins->add_hook("admin_formcontainer_output_row", "inplaykalender_permission"); 
+$plugins->add_hook("admin_user_groups_edit_commit", "inplaykalender_permission_commit"); 
 $plugins->add_hook("global_intermediate", "inplaykalender_global");
 $plugins->add_hook("newthread_start", "inplaykalender_newthread");
 $plugins->add_hook("newthread_do_newthread_end", "inplaykalender_do_newthread");
@@ -25,7 +27,36 @@ function inplaykalender_info(){
 }
 
 function inplaykalender_install() {
-    global $mybb, $db;
+    global $mybb, $db, $cache;
+
+    if(!$db->table_exists("ip_events")) {
+        $db->query("CREATE TABLE `mybb_ip_events` (
+            `eid` int(11) NOT NULL AUTO_INCREMENT,
+            `uid` int(11) NOT NULL,
+            `name` text NOT NULL,
+            `description` text NOT NULL,
+            `starttime` varchar(20) NOT NULL,
+            `endtime` varchar(20) NOT NULL,
+            `accepted` int(1) NOT NULL,
+            PRIMARY KEY (`eid`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;");
+    }
+
+     // add table field => group permissions
+     if(!$db->field_exists("canaddipevent", "usergroups"))
+     {
+         switch($db->type)
+         {
+             case "pgsql":
+                 $db->add_column("usergroups", "canaddipevent", "smallint NOT NULL default '1'");
+                 break;
+             default:
+                 $db->add_column("usergroups", "canaddipevent", "tinyint(1) NOT NULL default '1'");
+                 break;
+ 
+         }
+     } 
+     $cache->update_usergroups();
 
     $setting_group = array(
         'name' => 'inplaykalender',
@@ -52,14 +83,7 @@ function inplaykalender_install() {
         'optionscode' => 'text',
         'value' => 'April,Mai,Juni', // Default
         'disporder' => 1
-    ),
-    'inplaykalender_text' => array(
-        'title' => 'Spieljahr',
-        'description' => 'Text für den aktuellen Inplayzeitraum',
-        'optionscode' => 'textarea',
-        'value' => '', // Default
-        'disporder' => 1
-    ),
+    )
     );
 
     foreach($setting_array as $name => $setting) {
@@ -74,16 +98,13 @@ function inplaykalender_install() {
     $header_inplaykalender = [
         'title'        => 'header_inplaykalender',
         'template'    => $db->escape_string('<div id="container">
-        <table cellspacing="3" cellpadding="3" class="tborder trow2">
+        <table cellspacing="3" cellpadding="3" width="100%">
             <tr>
-                <td colspan="2">
-                    <div class="header-top"><i class="fa fa-calendar" aria-hidden="true"></i> Inplay-Info &raquo; Spieljahr: <strong>{$mybb->settings[\'inplaykalender_year\']}</strong> &raquo; <a href="inplaykalender.php" target="blank">[ <i class="fa fa-arrow-right" aria-hidden="true"></i> Zum <em>Kalender</em> ]</a></div>
+                <td>
+                    <div class="tcat">Inplay-Info &raquo; Spieljahr: <strong>{$mybb->settings[\'inplaykalender_year\']}</strong> &raquo; <a href="inplaykalender.php" target="blank">[ Zum <em>Kalender</em> ]</a></div>
                 </td>
             </tr>
             <tr>
-                <td width="23%" valign="top">
-                    <div class="header-box" style="height: 175px;">
-    <div class="header-text" style="height: 175px;">{$mybb->settings[\'inplaykalender_text\']}</div></div></td>
                 <td>{$header_inplaykalender_bit}</td>
             </tr>
         </table>
@@ -97,19 +118,19 @@ function inplaykalender_install() {
 
     $header_inplaykalender_bit = [
         'title'        => 'header_inplaykalender_bit',
-        'template'    => $db->escape_string('<div style="float: left; margin: 3px; margin-top: 0px; width: {$width}%; height: 175px;">
+        'template'    => $db->escape_string('<div style="float: left; margin: px; margin-top: 0px; width: {$width}%;">
         <table cellspacing="1" cellpadding="1" class="tborder" id="mini-kalender">
             <tr>
                 <td colspan="7" class="tcat" align="center">{$month} {$year}</td>
             </tr>
             <tr align="center" style="font-weight: bold;">
-                <td class="thead">Sun</td>
                 <td class="thead">Mon</td>
                 <td class="thead">Tue</td>
                 <td class="thead">Wed</td>
                 <td class="thead">Thu</td>
                 <td class="thead">Fri</td>
                 <td class="thead">Sat</td>
+                <td class="thead">Sun</td>
             </tr>
             <tr>
             </tr>
@@ -152,7 +173,7 @@ function inplaykalender_install() {
                     <td class="szenen"><strong>Inplay-Szenen</strong></td>
                     <td class="event"><strong>Events</strong></td>
 					<td class="timeline"><strong>Plots</strong></td>
-					<td class="geburtstag"><strong>Eigene Termine</strong></td>
+					<td class="geburtstag"><strong>Geburtstage</strong></td>
                 </tr>
             </table>
             {$month_bit}
@@ -175,14 +196,15 @@ function inplaykalender_install() {
 
     $inplaykalender_nav = [
         'title'        => 'inplaykalender_nav',
-        'template'    => $db->escape_string('<table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder con-nav">
+        'template'    => $db->escape_string('<table border="0" cellspacing="{$theme[\'borderwidth\']}" cellpadding="{$theme[\'tablespace\']}" class="tborder con-nav">
         <tbody>
             <tr>
                 <td class="thead"><strong>Navigation</strong></td>
             </tr>
             <tr>
-                <td class="trow2 smalltext"><i class="fa fa-calendar" aria-hidden="true"></i> <a href="inplaykalender.php">Kalender</a></td>
+                <td class="trow2 smalltext"><a href="inplaykalender.php">Kalender</a></td>
             </tr>
+            {$menu_add}
         </tbody>
 </table>'),
             'sid'        => '-1',
@@ -191,6 +213,19 @@ function inplaykalender_install() {
     ];
 
     $db->insert_query("templates", $inplaykalender_nav);
+
+    $inplaykalender_nav_add = [
+        'title'        => 'inplaykalender_nav_add',
+        'template'    => $db->escape_string('
+            <tr>
+                <td class="trow2 smalltext"><a href="inplaykalender.php?action=add">{$lang->inplaykalender_add}</a></td>
+            </tr>'),
+            'sid'        => '-1',
+            'version'    => '',
+            'dateline'    => TIME_NOW
+    ];
+
+    $db->insert_query("templates", $inplaykalender_nav_add);
 
     $inplaykalender_no_day_bit = [
         'title'        => 'inplaykalender_no_day_bit',
@@ -217,12 +252,11 @@ function inplaykalender_install() {
 
     $db->insert_query("templates", $inplaykalender_day_bit);
 
-    #TODO: Template korrigieren
     $inplaykalender_day_bit_popup = [
         'title'        => 'inplaykalender_day_bit_popup',
         'template'    => $db->escape_string('<div id="{$date}" class="calpop">
         <div class="pop">
-		<div class="category">{$week_day} - {$fulldate}</div>
+		<div class="thead">{$week_day} - {$fulldate}</div>
 			<div class="thead">Szenen</div>
 			<div style="margin: 5px 40px;">
 			{$threadlist}
@@ -251,13 +285,13 @@ function inplaykalender_install() {
                 <td colspan="7" class="thead" align="center">{$month} {$year}</td>
             </tr>
             <tr align="center" style="font-weight: bold;">
-                <td class="tcat">Sun</td>
                 <td class="tcat">Mon</td>
                 <td class="tcat">Tue</td>
                 <td class="tcat">Wed</td>
                 <td class="tcat">Thu</td>
                 <td class="tcat">Fri</td>
                 <td class="tcat">Sat</td>
+                <td class="tcat">Sun</td>
             </tr>
             <tr>
             </tr>
@@ -273,13 +307,94 @@ function inplaykalender_install() {
 
     $db->insert_query("templates", $inplaykalender_month_bit);
 
+    $inplaykalender_add = [
+        'title'        => 'inplaykalender_add',
+        'template'    => $db->escape_string('<html>
+        <head>
+        <title>{$mybb->settings[\'bbname\']} - {$lang->inplaykalender_add}</title>
+        {$headerinclude}
+        </head>
+        <body>
+        {$header}
+        <table width="100%" border="0" align="center">
+        <tr>
+        <td width="23%" valign="top">
+        {$menu}
+        </td>
+        <td valign="top">
+        <table border="0" cellspacing="{$theme[\'borderwidth\']}" cellpadding="{$theme[\'tablespace\']}" class="tborder">
+        <tr>
+        <td class="thead" colspan="{$colspan}"><strong>{$lang->inplaykalender_add}</strong></td>
+        </tr>
+        <tr>
+        <td class="trow2" style="padding: 10px; text-align: justify;">
+        <div style="width: 95%; margin: auto; padding: 8px;  font-size: 12px; line-height: 1.5em;" class="trow1">
+            <form method="post" action="inplaykalender.php" id="add_event">
+            <table cellspacing="3" cellpadding="3" class="tborder" style="width: 90%";>
+                <tr>
+                    <td class="trow1">
+                        <strong>{$lang->inplaykalender_event_name}:</strong>
+                    </td>
+                    <td class="trow1">
+                        <input type="text" class="textbox" name="name" id="name" size="40" maxlength="1155" style="width: 340px;" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="trow2">
+                        <strong>{$lang->inplaykalender_event_date_start}:</strong>
+                    </td>
+                    <td class="trow2">
+                        <input type="date" name="starttime" \>	
+                    </td>
+                </tr>
+                <tr>
+                    <td class="trow2">
+                        <strong>{$lang->inplaykalender_event_date_end}:</strong>
+                    </td>
+                    <td class="trow2">
+                        <input type="date" name="endtime" \>	
+                    </td>
+                </tr>
+                <tr>
+                    <td class="trow1">
+                        <strong>{$lang->inplaykalender_event_desc}:</strong>
+                    </td>
+                    <td class="trow1">
+                        <textarea name="desc" id="desc" style="height: 100px; width: 340px;"></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="trow1" colspan="2" align="center">
+                        <input type="hidden" name="action" value="do_add" />
+                        <input type="submit" name="submit" id="submit" class="button" value="{$lang->inplaykalender_add}" />
+                    </td>
+                </tr>
+            </table>
+            </form>
+            <br />
+        </div>
+        </td>
+        </tr>
+        </table>
+        </td>
+        </tr>
+        </table>
+        {$footer}
+        </body>
+        </html>'),
+        'sid'        => '-1',
+        'version'    => '',
+        'dateline'    => TIME_NOW
+    ];
+
+    $db->insert_query("templates", $inplaykalender_add);
+
 }
 
 function inplaykalender_is_installed() {
     global $db;
 
-    #TODO: find method
-    if($db->table_exists("events")) {
+    if($db->table_exists("ip_events")) {
         return true;
     }
     
@@ -289,11 +404,21 @@ function inplaykalender_is_installed() {
 function inplaykalender_uninstall() {
     global $db;  
 
+    if($db->table_exists("ip_events")) {
+        $db->query("DROP TABLE `mybb_ip_events`");
+    }
+
+    // drop fields
+	if($db->field_exists("canaddipevent", "usergroups"))
+	{
+    	$db->drop_column("usergroups", "canaddipevent");
+	}
+
     $db->delete_query('settings', "name LIKE 'inplaykalender%'");
     $db->delete_query('settinggroups', "name = 'inplaykalender'");
     rebuild_settings();
 
-    #TODO: delete templates
+    $db->delete_query('templates', "title LIKE '%inplaykalender%'");
 }
 
 function inplaykalender_activate() {
@@ -319,7 +444,7 @@ function inplaykalender_activate() {
         .szenenevent { background: linear-gradient(to left top, #EBD39D 50%, #ABD9D8 50%); }
         .szenenevent strong { }
         .szenengeburtstag strong { color: #543D59 !important; }
-        .geburtstagtimeline { background: linear-gradient(to left top, #C8B6CC 50%, #BADBAF 50%); }
+        .geburtstagtimeline { background: linear-gradient(to left top, #EBD39D 50%, #BADBAF 50%); }
         .geburtstagtimeline strong { color: #6E644E !important;  }
         .geburtstagevent { background: linear-gradient(to left top, #C8B6CC 50%, #ABD9D8 50%); }
         .geburtstagevent strong { }
@@ -332,7 +457,7 @@ function inplaykalender_activate() {
         .szenengeburtstagevent strong { }
         .szenentimelineevent {  background: linear-gradient(to left top, #EBD39D 33%, #BADBAF 33%, #BADBAF 66%, #ABD9D8 66%); }
         .szenentimelineevent strong { }
-        .geburtstagtimelineevent { background: linear-gradient(to left top, #C8B6CC 33%, #BADBAF 33%, #BADBAF 66%, #ABD9D8 66%); }
+        .geburtstagtimelineevent { background: linear-gradient(to left top, #EBD39D 33%, #BADBAF 33%, #BADBAF 66%, #ABD9D8 66%); }
         .geburtstagtimelineevent strong { }
         
         .szenengeburtstagtimelineevent { background: linear-gradient(to left top, #EBD39D 25%, #C8B6CC 25%, #C8B6CC 50%, #BADBAF 50%, #BADBAF 75%, #ABD9D8 75%); }
@@ -382,6 +507,24 @@ function inplaykalender_deactivate() {
     find_replace_templatesets("header", "#".preg_quote('{$header_inplaykalender}<br />')."#i", '', 0);
 }
 
+function inplaykalender_permission($above)
+{
+	global $mybb, $lang, $form;
+
+	if($above['title'] == $lang->misc && $lang->misc)
+	{
+		$above['content'] .= "<div class=\"group_settings_bit\">".$form->generate_check_box("canaddipevent", 1, "Kann dem Inplaykalender Events hinzufügen", array("checked" => $mybb->input['canaddipevent']))."</div>";
+	}
+
+	return $above;
+}
+
+function inplaykalender_permission_commit()
+{
+	global $mybb, $updated_group;
+	$updated_group['canaddipevent'] = $mybb->get_input('canaddipevent', MyBB::INPUT_INT);
+}
+
 function inplaykalender_global() {
     global $lang, $mybb, $db, $templates, $theme, $day_calendar_bit, $header_inplaykalender_bit, $header_inplaykalender;
 
@@ -395,26 +538,34 @@ function inplaykalender_global() {
     $months = array(1 => $lang->inplaykalender_januar, $lang->inplaykalender_februar, $lang->inplaykalender_maerz, $lang->inplaykalender_april, $lang->inplaykalender_mai, $lang->inplaykalender_juni, $lang->inplaykalender_juli, $lang->inplaykalender_august, $lang->inplaykalender_september, $lang->inplaykalender_oktober, $lang->inplaykalender_november, $lang->inplaykalender_dezember);
     $months_en = array(1 => $lang->inplaykalender_januar_en, $lang->inplaykalender_februar_en, $lang->inplaykalender_maerz_en, $lang->inplaykalender_april_en, $lang->inplaykalender_mai_en, $lang->inplaykalender_juni_en, $lang->inplaykalender_juli_en, $lang->inplaykalender_august_en, $lang->inplaykalender_september_en, $lang->inplaykalender_oktober_en, $lang->inplaykalender_november_en, $lang->inplaykalender_dezember_en);
 
-    foreach($inplay_months as $month)
+    foreach($inplay_months as $montharray)
     {
+        $days = "";
+        $array = explode(" ", $montharray);
+        $month = $array[0];
+        $year = $array[1];
+        if(empty($year)) {
+            $year = $mybb->settings['inplaykalender_year'];
+        }
+
         $key = array_search($month, $months);
         $month_en = $months_en[$key];
         $day_calendar_bit = "";
         $event = "";
 
         // get days in month
-        $number_days = cal_days_in_month(CAL_GREGORIAN, $key, $mybb->settings['inplaykalender_year']);
+        $number_days = cal_days_in_month(CAL_GREGORIAN, $key, $year);
 
         // get first day of month
-        $time_str = "01-{$months_en[$key]}-{$mybb->settings['inplaykalender_year']}"; // pattern: d-F-Y
+        $time_str = "01-{$months_en[$key]}-{$year}"; // pattern: d-F-Y
         $first_day = date('w', strtotime($time_str));
         
         //get last day of month
-        $time_str = "{$number_days}-{$months_en[$key]}-{$mybb->settings['inplaykalender_year']}"; // pattern: d-F-Y
+        $time_str = "{$number_days}-{$months_en[$key]}-{$year}"; // pattern: d-F-Y
         $last_day = date('w', strtotime($time_str));
         
         // get empty table datas (e.g. month starts on thursday)
-        for($j = 0; $j < $first_day; $j++) {
+        for($j = 1; $j < $first_day; $j++) {
             eval("\$day_calendar_bit .= \"".$templates->get("inplaykalender_no_day_bit")."\";");
             $days++;
             if($days == 7) {
@@ -425,23 +576,25 @@ function inplaykalender_global() {
 
         // get month's days table datas            
         for($i = 1; $i <= $number_days; $i++) {
-            $date = strtotime("{$i}-{$months_en[$key]}-{$mybb->settings['inplaykalender_year']}");
+            $date = strtotime("{$i}-{$months_en[$key]}-{$year}");
             $title = $i;
             $event = "";
             
             // get inplay scenes
             $szenen = false;
-            $query = $db->query("SELECT * FROM ".TABLE_PREFIX."ipt_scenes WHERE date = '$date'");
-            if(mysqli_num_rows($query) > 0) {
-                    $threadlist = "";
-                    while($szenenliste = $db->fetch_array($query)) {
-                        $thread = get_thread($szenenliste['tid']);
-                        if($thread) {
-                            $szenen = true;
-                            $threadlist .= "&bull; <a href=\"showthread.php?tid={$thread['tid']}\" target=\"_blank\">{$thread['subject']}</a><br />{$szenenliste['shortdesc']}<br />";
-                        } else {  }
-                } 
-            } else { $threadlist = ""; }
+            if($db->table_exists("ipt_scenes")) {
+                $query = $db->query("SELECT * FROM ".TABLE_PREFIX."ipt_scenes WHERE date = '$date'");
+                if(mysqli_num_rows($query) > 0) {
+                        $threadlist = "";
+                        while($szenenliste = $db->fetch_array($query)) {
+                            $thread = get_thread($szenenliste['tid']);
+                            if($thread) {
+                                $szenen = true;
+                                $threadlist .= "&bull; <a href=\"showthread.php?tid={$thread['tid']}\" target=\"_blank\">{$thread['subject']}</a><br />{$szenenliste['shortdesc']}<br />";
+                            } else {  }
+                    } 
+                } else { $threadlist = ""; }
+            }
             
             // get birthdays
             $birthday = false;
@@ -457,14 +610,16 @@ function inplaykalender_global() {
 				$birthdayusers .= "{$profilelink} <br />";
 			}
             
-            // get timeline events
-            if($db->table_exists("timeline")) {
-                $timeline = false;
-                $query = $db->query("SELECT * FROM ".TABLE_PREFIX."timeline WHERE date = '$date'");
-                if(mysqli_num_rows($query) > 0) {
-                    $timeline = true;
-                }
-            }   
+            // get calendar events
+            $events = false;
+            $query = $db->query("SELECT * FROM ".TABLE_PREFIX."ip_events");
+            $eventlist = "";
+            while($event_list = $db->fetch_array($query)) {
+                if($event_list['starttime'] <= $date && $event_list['endtime'] >= $date) {
+                    $events = true;
+                    $eventlist .= "&bull; <strong>{$event_list['name']}</strong><br /><div class=\"inplaykalender-eventlist\">{$event_list['description']}</div><br />";
+                } 
+            }  
             
             // get plots
             if($db->table_exists("plots")) {
@@ -480,7 +635,7 @@ function inplaykalender_global() {
             }
             
             // set css class and format day link 
-            $list_of_events = array("$lang->inplaykalender_class_scenes" => $szenen, "$lang->inplaykalender_class_birthday" => $birthday, "$lang->inplaykalender_class_timeline" => $timeline, "$lang->inplaykalender_class_event" => $plots);
+            $list_of_events = array("$lang->inplaykalender_class_scenes" => $szenen, "$lang->inplaykalender_class_birthday" => $birthday, "$lang->inplaykalender_class_timeline" => $plots, "$lang->inplaykalender_class_event" => $events);
             foreach($list_of_events as $class => $single_event) {
                 if($single_event) {
                     $event .= $class;
@@ -510,7 +665,7 @@ function inplaykalender_global() {
         // get table width & max 3 months per row
         $width = 100 / $months_count;
         $width = $width - 1;
-        if($width > 32) {
+        if($width < 32) {
             $width = 32;
         }
         eval("\$header_inplaykalender_bit .= \"".$templates->get("header_inplaykalender_bit")."\";");

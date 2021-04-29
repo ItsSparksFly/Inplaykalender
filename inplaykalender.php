@@ -15,6 +15,9 @@ add_breadcrumb($lang->inplaykalender, "inplaykalender.php");
 $action = $mybb->input['action'];
 
 // get navigation
+if($mybb->usergroup['canaddipevent']) {
+    eval("\$menu_add = \"".$templates->get("inplaykalender_nav_add")."\";");
+}
 eval("\$menu = \"".$templates->get("inplaykalender_nav")."\";");
 
 // get year
@@ -48,7 +51,7 @@ if(empty($action)) {
         $last_day = date('w', strtotime($time_str));
         
         // get empty table datas (e.g. month starts on thursday)
-        for($j = 0; $j < $first_day; $j++) {
+        for($j = 1; $j < $first_day; $j++) {
             eval("\$day_bit .= \"".$templates->get("inplaykalender_no_day_bit")."\";");
             $days++;
             if($days == 7) {
@@ -65,18 +68,20 @@ if(empty($action)) {
             $event = "";
             
             // get inplay scenes
-            $szenen = false;
-            $query = $db->query("SELECT * FROM ".TABLE_PREFIX."ipt_scenes WHERE date = '$date'");
-            if(mysqli_num_rows($query) > 0) {
-                    $threadlist = "";
-                    while($szenenliste = $db->fetch_array($query)) {
-                        $thread = get_thread($szenenliste['tid']);
-                        if($thread) {
-                            $szenen = true;
-                            $threadlist .= "&bull; <a href=\"showthread.php?tid={$thread['tid']}\" target=\"_blank\">{$thread['subject']}</a><br />{$szenenliste['shortdesc']}<br />";
-                        } else {  }
-                } 
-            } else { $threadlist = ""; }
+            if($db->table_exists("ipt_scenes")) {
+                $szenen = false;
+                $query = $db->query("SELECT * FROM ".TABLE_PREFIX."ipt_scenes WHERE date = '$date'");
+                if(mysqli_num_rows($query) > 0) {
+                        $threadlist = "";
+                        while($szenenliste = $db->fetch_array($query)) {
+                            $thread = get_thread($szenenliste['tid']);
+                            if($thread) {
+                                $szenen = true;
+                                $threadlist .= "&bull; <a href=\"showthread.php?tid={$thread['tid']}\" target=\"_blank\">{$thread['subject']}</a><br />{$szenenliste['shortdesc']}<br />";
+                            } else {  }
+                    } 
+                } else { $threadlist = ""; }
+            }
             
             // get birthdays
             $birthday = false;
@@ -85,15 +90,22 @@ if(empty($action)) {
             if(mysqli_num_rows($query) > 0) {
                 $birthday = true;
             }
+			$birthdayusers = "";
+			while($user = $db->fetch_array($query)) {
+				$profilelink = build_profile_link($user['username'], $user['uid']);
+				$birthdayusers .= "{$profilelink} <br />";
+			}
             
-            // get timeline events
-            if($db->table_exists("timeline")) {
-                $timeline = false;
-                $query = $db->query("SELECT * FROM ".TABLE_PREFIX."timeline WHERE date = '$date'");
-                if(mysqli_num_rows($query) > 0) {
-                    $timeline = true;
-                }
-            }
+            // get calendar events
+            $events = false;
+            $query = $db->query("SELECT * FROM ".TABLE_PREFIX."ip_events");
+            $eventlist = "";
+            while($event_list = $db->fetch_array($query)) {
+                if($event_list['starttime'] <= $date && $event_list['endtime'] >= $date) {
+                    $events = true;
+                    $eventlist .= "&bull; <strong>{$event_list['name']}</strong><br /><div class=\"inplaykalender-eventlist\">{$event_list['description']}</div><br />";
+                } 
+            } 
             
             // get plots
             if($db->table_exists("plots")) {
@@ -108,7 +120,7 @@ if(empty($action)) {
                 }
             }
             
-            $list_of_events = array("$lang->inplaykalender_class_scenes" => $szenen, "$lang->inplaykalender_class_birthday" => $birthday, "$lang->inplaykalender_class_timeline" => $timeline, "$lang->inplaykalender_class_event" => $plots);
+            $list_of_events = array("$lang->inplaykalender_class_scenes" => $szenen, "$lang->inplaykalender_class_birthday" => $birthday, "$lang->inplaykalender_class_timeline" => $plots, "$lang->inplaykalender_class_event" => $events);
 
             // if there's an event on this day, create popup
             if(in_array(true, $list_of_events)) {
@@ -150,18 +162,11 @@ if(empty($action)) {
 }
 
 if($action == "add") {
-    
-    // format date dropdowns
-    for($i=1 ; $i <=31; $i++) {
-        $day_bit .= "<option value=\"{$i}\">{$i}</option>";
+
+    if(!$mybb->usergroup['canaddipevent']) {
+        error_no_permission();
     }
-    foreach($months as $id => $month) {
-        $month_bit .= "<option value=\"{$id}\">{$month}</option>";
-    }        
-    for($i=2016; $i <=2017; $i++) {
-        $year_bit .= "<option value=\"{$i}\">{$i}</option>";
-    }
-    
+
     // set template
     eval("\$page = \"".$templates->get("inplaykalender_add")."\";");
     output_page($page);
@@ -170,8 +175,8 @@ if($action == "add") {
 if($action == "do_add") {
 
     // format unix timestamp
-    $starttime = strtotime($mybb->get_input('year_start')."-".$mybb->get_input('month_start')."-".$mybb->get_input('day_start'));
-    $endtime = strtotime($mybb->get_input('year_end')."-".$mybb->get_input('month_end')."-".$mybb->get_input('day_end'));
+    $starttime = strtotime($mybb->get_input('starttime'));
+    $endtime = strtotime($mybb->get_input('endtime'));
     
     // data to insert into database
     $new_record = array(
@@ -184,7 +189,7 @@ if($action == "do_add") {
     );
     
     // insert entry
-    $db->insert_query("events", $new_record);
+    $db->insert_query("ip_events", $new_record);
     
     // stuff is done, redirect to landing page
     redirect("inplaykalender.php", "{$lang->inplaykalender_added}");
