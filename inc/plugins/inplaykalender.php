@@ -256,7 +256,7 @@ function inplaykalender_install() {
         'title'        => 'inplaykalender_day_bit_popup',
         'template'    => $db->escape_string('<div id="{$date}" class="calpop">
         <div class="pop">
-		<div class="thead">{$week_day} - {$fulldate}</div>
+		<div class="tcat">{$week_day} - {$fulldate}</div>
 			<div class="thead">Szenen</div>
 			<div style="margin: 5px 40px;">
 			{$threadlist}
