@@ -39,13 +39,14 @@ All' euren Designs wird ein inplaykalender.css hinzugefügt.
 
 <h1>Demo</h1>
 
-[align=center]<a href="https://snipboard.io/7IUOre.jpg">[img]https://snipboard.io/7IUOre.jpg[/img]</a>
+<center>
+  <a href="https://snipboard.io/7IUOre.jpg"><img src="https://snipboard.io/7IUOre.jpg" /></a>
 
 <img src="https://snipboard.io/97UJLk.jpg" />
 
 <img src="https://snipboard.io/HRA2cE.jpg" />
 
-[url=https://belle.eightletters.de/index.php]Live Demo[/url][/align]
+<a href="https://belle.eightletters.de">Live Demo</a></center>
 
 <h1>Inplayzeitraum eintragen</h1>
 Den Inplayzeitraum tragt ihr im ACP unter <b>Konfiguration &bull; Inplaykalender Einstellungen</b> ein. Gebt eure Spielmonate mit Komma getrennt an (kein Leerzeichen dazwischen)! Die richtige Angabe ist <b>sehr wichtig</b>. 
@@ -53,7 +54,5 @@ Den Inplayzeitraum tragt ihr im ACP unter <b>Konfiguration &bull; Inplaykalender
 Was, wenn ihr zum Jahreswechsel spielt? Zum Beispiel im November und Dezember des Jahres 2020, aber im Januar 2021? Ganz einfach: ihr könnt Inplaymonate auch wiefolgt angeben: <b>November 2020,Dezember 2020,Januar 2021</b> (auch hier kein Leerzeichen zwischen den Kommata!). Der Kalender auf der Kalender-Hauptseite inplaykalender.php wird davon ab immer das Jahr anzeigen, das ihr als Spieljahr im ACP eingetragen habt. 
 
 Ihr könnt beliebig viele Monate anzeigen lassen - ich empfehle aber maximal drei. ;) 
-
-[align=center][size=x-large][url=https://github.com/ItsSparksFly/mybb-inplaykalender]Zum Download[/url][/size][/align]
 
 Viel Spaß.
