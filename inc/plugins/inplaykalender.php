@@ -8,11 +8,6 @@ if(!defined("IN_MYBB")) {
 $plugins->add_hook("admin_formcontainer_output_row", "inplaykalender_permission"); 
 $plugins->add_hook("admin_user_groups_edit_commit", "inplaykalender_permission_commit"); 
 $plugins->add_hook("global_intermediate", "inplaykalender_global");
-$plugins->add_hook("newthread_start", "inplaykalender_newthread");
-$plugins->add_hook("newthread_do_newthread_end", "inplaykalender_do_newthread");
-$plugins->add_hook("newthread_do_newthread_end", "inplaykalender_do_newthread");
-$plugins->add_hook("editpost_start", "inplaykalender_editpost_start");
-$plugins->add_hook("editpost_do_editpost_end", "inplaykalender_do_editpost");
 
 function inplaykalender_info(){
     return array(
