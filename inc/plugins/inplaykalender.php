@@ -25,7 +25,7 @@ function inplaykalender_install() {
     global $mybb, $db, $cache;
 
     if(!$db->table_exists("ip_events")) {
-        $db->query("CREATE TABLE `mybb_ip_events` (
+        $db->query("CREATE TABLE `".TABLE_PREFIX.""ip_events` (
             `eid` int(11) NOT NULL AUTO_INCREMENT,
             `uid` int(11) NOT NULL,
             `name` text NOT NULL,
@@ -403,7 +403,7 @@ function inplaykalender_uninstall() {
     global $db;  
 
     if($db->table_exists("ip_events")) {
-        $db->query("DROP TABLE `mybb_ip_events`");
+        $db->query("DROP TABLE `".TABLE_PREFIX."ip_events`");
     }
 
     // drop fields
