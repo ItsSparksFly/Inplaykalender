@@ -472,7 +472,7 @@ function inplaykalender_activate() {
         .closepop { position: absolute; right: -5px; top:-5px; width: 100%; height: 100%; z-index: 999; }
 
         .inplaykalender-eventlist { max-height: 50px; overflow: auto; padding-right: 5px;}',
-        'cachefile' => $db->escape_string(str_replace('/', '', inplaykalender.css)),
+        'cachefile' => $db->escape_string(str_replace('/', '', "inplaykalender.css")),
         'lastmodified' => time(),
         'attachedto' => ''
     );
