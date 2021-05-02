@@ -15,7 +15,7 @@ $l['inplaykalender_class_event'] = "event";
 // monate
 $l['inplaykalender_januar'] = "Januar";
 $l['inplaykalender_februar'] = "Februar";
-$l['inplaykalender_maerz'] = "März";
+$l['inplaykalender_maerz'] = "Maerz";
 $l['inplaykalender_april'] = "April";
 $l['inplaykalender_mai'] = "Mai";
 $l['inplaykalender_juni'] = "Juni";

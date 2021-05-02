@@ -76,7 +76,7 @@ function inplaykalender_install() {
         'title' => 'Spieljahr',
         'description' => 'In welchen Monaten spielt dein RPG? Monate mit "," trennen.',
         'optionscode' => 'text',
-        'value' => 'April,Mai,Juni', // Default
+        'value' => 'Januar,Februar,Maerz', // Default
         'disporder' => 1
     )
     );
