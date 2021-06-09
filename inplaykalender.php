@@ -116,7 +116,7 @@ if(empty($action)) {
                     if($plot_list['startdate'] <= $date && $plot_list['enddate'] >= $date) {
                         $plots = true;
                         $plotlist .= "&bull; <a href=\"plottracker.php?action=view&plid={$plot_list['plid']}\" target=\"_blank\">{$plot_list['name']}</a>";
-                    } else { $plotlist = ""; }
+                    } else { }
                 }
             }
             
