@@ -638,7 +638,7 @@ function inplaykalender_global() {
             foreach($list_of_events as $class => $single_event) {
                 if($single_event) {
                     $event .= $class;
-                    $title = "<a href=\"inplaykalender.php#{$date}\" target=\"blank\"><strong>{$i}</strong></a>";
+                    $title = "<a href=\"inplaykalender.php?y={$year}#{$date}\" target=\"blank\"><strong>{$i}</strong></a>";
                 }
             }
 
