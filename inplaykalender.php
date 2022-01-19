@@ -44,7 +44,7 @@ if(empty($action)) {
         
         // get first day of month
         $time_str = "01-{$months_en[$id]}-{$year}"; // pattern: d-F-Y
-        $first_day = date('w', strtotime($time_str));
+        $first_day = date('N', strtotime($time_str));
         
         //get last day of month
         $time_str = "{$number_days}-{$months_en[$id]}-{$year}"; // pattern: d-F-Y
