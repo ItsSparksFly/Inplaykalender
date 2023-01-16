@@ -383,6 +383,78 @@ function inplaykalender_install() {
     ];
 
     $db->insert_query("templates", $inplaykalender_add);
+	
+    $inplaykalender_edit = [
+        'title'        => 'inplaykalender_edit',
+        'template'    => $db->escape_string('<html>
+        <head>
+        <title>{$mybb->settings[\'bbname\']} - {$lang->inplaykalender_add}</title>
+        {$headerinclude}
+        </head>
+        <body>
+        {$header}
+			<div id="Lexi_Main">
+		<div class="Lexi_Nav">{$navigation}{$menu}</div>
+		<div class="Lists_Content">
+			<div class="Lexi_Text"><h2>Inplaykalender: Event hinzufügen</h2><br />
+				Neben den Forenplots besteht auch die Möglichkeit, eigene Events für das Inplay zu planen. Falls dein Charakter eine ausgiebiger Feier plant, sein oder ihr mittelgroßer Jahrmarkt durch die Stadt zieht oder sonstige inplayrelevante Aktivitäten plant, hast du hier die Möglichkeit, diese im Inplaykalender einzutragen.<br />
+				
+				<form method="post" action="inplaykalender.php" id="add_event">
+					 <table cellspacing="3" cellpadding="3" class="tborder" style="width: 90%";>
+                <tr>
+                    <td class="trow1" valign="top">
+                        <strong>{$lang->inplaykalender_event_name}:</strong>
+                    </td>
+                    <td class="trow1">
+                        <input type="text" class="textbox" name="name" id="name" size="40" maxlength="1155" value="{$event[\'name\']}" style="width: 340px;" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="trow1" valign="top">
+                        <strong>{$lang->inplaykalender_event_date_start}:</strong>
+                    </td>
+                    <td class="trow1">
+                        <input type="date" name="starttime" value="{$starttime}" \>	
+                    </td>
+                </tr>
+                <tr>
+                    <td class="trow1" valign="top">
+                        <strong>{$lang->inplaykalender_event_date_end}:</strong>
+                    </td>
+                    <td class="trow1">
+                        <input type="date" name="endtime" value="{$endtime}" \>	
+                    </td>
+                </tr>
+                <tr>
+                    <td class="trow1" valign="top">
+                        <strong>{$lang->inplaykalender_event_desc}:</strong>
+                    </td>
+                    <td class="trow1">
+                        <textarea name="desc" id="desc" style="height: 100px; width: 100%;">{$event[\'description\']}</textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="trow1" colspan="2" align="center">
+<input type="hidden" name="eid" value="{$event[\'eid\']}" />
+                        <input type="hidden" name="action" value="do_edit" />
+                        <input type="submit" name="submit" id="submit" class="button" value="{$lang->inplaykalender_add}" />
+                    </td>
+                </tr>
+            </table>
+					
+				</form>
+			</div>
+				</div>
+			</div>
+        {$footer}
+        </body>
+        </html>'),
+        'sid'        => '-1',
+        'version'    => '',
+        'dateline'    => TIME_NOW
+    ];
+
+    $db->insert_query("templates", $inplaykalender_edit);
 
 }
 
