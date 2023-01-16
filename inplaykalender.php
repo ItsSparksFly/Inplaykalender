@@ -132,7 +132,7 @@ if(empty($action)) {
                 $week_day_num = date("w", $date);
                 $week_day = $all_days[$week_day_num];
                 $fulldate = date("d.m.Y", $date);
-                $title = "<a href=\"#{$date}\"><strong>{$i}</strong></a>";
+                $title = "<a href=\"\" onclick=\"$('#{$date}').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== 'undefined' ? modal_zindex : 9999) }); return false;\"><strong>{$i}</strong></a>";
                 eval("\$day_popup = \"".$templates->get("inplaykalender_day_bit_popup")."\";");
             }
 
