@@ -393,13 +393,20 @@ function inplaykalender_install() {
         </head>
         <body>
         {$header}
-			<div id="Lexi_Main">
-		<div class="Lexi_Nav">{$navigation}{$menu}</div>
-		<div class="Lists_Content">
-			<div class="Lexi_Text"><h2>Inplaykalender: Event hinzufügen</h2><br />
-				Neben den Forenplots besteht auch die Möglichkeit, eigene Events für das Inplay zu planen. Falls dein Charakter eine ausgiebiger Feier plant, sein oder ihr mittelgroßer Jahrmarkt durch die Stadt zieht oder sonstige inplayrelevante Aktivitäten plant, hast du hier die Möglichkeit, diese im Inplaykalender einzutragen.<br />
-				
-				<form method="post" action="inplaykalender.php" id="add_event">
+        <table width="100%" border="0" align="center">
+        <tr>
+        <td width="23%" valign="top">
+        {$menu}
+        </td>
+        <td valign="top">
+        <table border="0" cellspacing="{$theme[\'borderwidth\']}" cellpadding="{$theme[\'tablespace\']}" class="tborder">
+        <tr>
+        <td class="thead" colspan="{$colspan}"><strong>{$lang->inplaykalender_add}</strong></td>
+        </tr>
+        <tr>
+        <td class="trow2" style="padding: 10px; text-align: justify;">
+        <div style="width: 95%; margin: auto; padding: 8px;  font-size: 12px; line-height: 1.5em;" class="trow1">
+        <form method="post" action="inplaykalender.php" id="add_event">
 					 <table cellspacing="3" cellpadding="3" class="tborder" style="width: 90%";>
                 <tr>
                     <td class="trow1" valign="top">
@@ -443,9 +450,14 @@ function inplaykalender_install() {
             </table>
 					
 				</form>
-			</div>
-				</div>
-			</div>
+            <br />
+        </div>
+        </td>
+        </tr>
+        </table>
+        </td>
+        </tr>
+        </table>
         {$footer}
         </body>
         </html>'),
