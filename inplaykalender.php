@@ -102,8 +102,11 @@ if(empty($action)) {
             $eventlist = "";
             while($event_list = $db->fetch_array($query)) {
                 if($event_list['starttime'] <= $date && $event_list['endtime'] >= $date) {
-                    $events = true;
-                    $eventlist .= "&bull; <strong>{$event_list['name']}</strong><br /><div class=\"inplaykalender-eventlist\">{$event_list['description']}</div><br />";
+                    if($mybb->usergroup['cancp'] == 1 || $mybb->user['uid'] == $event_list['uid']) {
+                        $eventname = $event_list['name'];
+                        $editoptions = "[ <a href=\"inplaykalender.php?action=editevent&eid={$event_list['eid']}\">Bearbeiten</a> &bull; <a href=\"inplaykalender.php?action=deleteevent&eid={$event_list['eid']}\" onclick=\"return confirm('Soll das Event $eventname gelöscht werden?')\">Löschen</a> ]";
+                    } else { $editoptions = ""; }
+                    $eventlist .= "&bull; {$editoptions} <strong>{$event_list['name']}</strong><br /><div class=\"inplaykalender-eventlist\">{$event_list['description']}</div><br />";
                 } 
             } 
             
@@ -193,5 +196,65 @@ if($action == "do_add") {
     
     // stuff is done, redirect to landing page
     redirect("inplaykalender.php", "{$lang->inplaykalender_added}");
+}
+
+if($action == "editevent") {
+
+    $eid = (int)$mybb->get_input('eid');
+
+    $query = $db->simple_select("ip_events", "*", "eid = '$eid'");
+    $event = $db->fetch_array($query);
+
+    if(!$mybb->usergroup['cancp']) {
+        if($mybb->user['uid'] != $event['uid']) {
+            error_no_permission();
+        }
+    }
+
+    $starttime = date("Y-m-d", $event['starttime']);
+    $endtime = date("Y-m-d", $event['endtime']);
+
+    // set template
+    eval("\$page = \"".$templates->get("inplaykalender_edit")."\";");
+    output_page($page);
+}
+
+if($action == "do_edit") {
+    $eid = (int)$mybb->get_input('eid');
+    // format unix timestamp
+    $starttime = strtotime($mybb->get_input('starttime'));
+    $endtime = strtotime($mybb->get_input('endtime'));
+
+    // data to insert into database
+    $new_record = array(
+        "name" => $db->escape_string($mybb->get_input('name')),
+        "starttime" => $starttime,
+        "endtime" => $endtime,
+        "description" => $db->escape_string($mybb->get_input('desc'))
+    );
+
+    // insert entry
+    $db->update_query("ip_events", $new_record, "eid = '{$eid}'");
+    
+    // stuff is done, redirect to landing page
+    redirect("inplaykalender.php", "{$lang->inplaykalender_added}");
+}
+
+if($action == "deleteevent") {
+    $eid = (int)$mybb->get_input('eid');
+
+    $query = $db->simple_select("ip_events", "*", "eid = '$eid'");
+    $event = $db->fetch_array($query);
+
+    if(!$mybb->usergroup['cancp']) {
+        if($mybb->user['uid'] != $event['uid']) {
+            error_no_permission();
+        }
+    }
+
+    $db->delete_query("ip_events", "eid = '{$eid}'");
+
+    // stuff is done, redirect to landing page
+    redirect("inplaykalender.php");
 }
 ?>
