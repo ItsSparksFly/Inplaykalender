@@ -564,12 +564,13 @@ function inplaykalender_global() {
         // get month's days table datas            
         for($i = 1; $i <= $number_days; $i++) {
             $date = strtotime("{$i}-{$months_en[$key]}-{$year}");
+            $day_popup = ""; 
             $title = $i;
             $event = "";
             
             // get inplay scenes
             $szenen = false;
-            if($db->table_exists("ipt_scenes")) {
+            if($db->table_exists("$ipt_scenes")) {
                 $query = $db->query("SELECT * FROM ".TABLE_PREFIX."ipt_scenes WHERE date = '$date'");
                 if(mysqli_num_rows($query) > 0) {
                         $threadlist = "";
@@ -626,7 +627,8 @@ function inplaykalender_global() {
             foreach($list_of_events as $class => $single_event) {
                 if($single_event) {
                     $event .= $class;
-                    $title = "<a href=\"inplaykalender.php?y={$year}#{$date}\" target=\"blank\"><strong>{$i}</strong></a>";
+                    $title = "<a href=\"\" onclick=\"$('#{$date}').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== 'undefined' ? modal_zindex : 9999) }); return false;\"><strong>{$i}</strong></a>";
+eval("\$day_popup = \"".$templates->get("inplaykalender_day_bit_popup")."\";");
                 }
             }
 
