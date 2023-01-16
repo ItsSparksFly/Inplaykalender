@@ -249,8 +249,7 @@ function inplaykalender_install() {
 
     $inplaykalender_day_bit_popup = [
         'title'        => 'inplaykalender_day_bit_popup',
-        'template'    => $db->escape_string('<div id="{$date}" class="calpop">
-        <div class="pop">
+        'template'    => $db->escape_string('<div id="{$date}" class="modal">
 		<div class="tcat">{$week_day} - {$fulldate}</div>
 			<div class="thead">Szenen</div>
 			<div style="margin: 5px 40px;">
@@ -265,8 +264,6 @@ function inplaykalender_install() {
                 <br /><br /><div class="thead">Geburtstage</div>
 			<div style="margin: 5px 40px;">
 				{$birthdayusers}</div>
-        </div>
-        <a href="#closepop" class="closepop"></a>
 </div>'),
             'sid'        => '-1',
             'version'    => '',
@@ -462,15 +459,6 @@ function inplaykalender_activate() {
 
         #mini-kalender { font-size: 7px; }
         #mini-kalender td { padding: 5px; }
-        .calpop { position: fixed; top: 0; right: 0; bottom: 0; left: 0; background: rgba(0,0,0,.5); z-index: 1000; opacity:0; -webkit-transition: .5s ease-in-out; -moz-transition: .5s ease-in-out; transition: .5s ease-in-out; pointer-events: none; } 
-
-
-        .calpop:target { opacity:1; pointer-events: auto; }
-
-        .calpop > .pop { text-align: justify; background: rgba(255,255,255,8); width: 800px; position: relative; margin: 5% auto; padding: 10px; z-index: 1002; font-size: 11px; }
-
-        .closepop { position: absolute; right: -5px; top:-5px; width: 100%; height: 100%; z-index: 999; }
-
         .inplaykalender-eventlist { max-height: 50px; overflow: auto; padding-right: 5px;}',
         'cachefile' => $db->escape_string(str_replace('/', '', 'inplaykalender.css')),
         'lastmodified' => time(),
