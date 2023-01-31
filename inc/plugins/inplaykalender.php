@@ -249,7 +249,7 @@ function inplaykalender_install() {
 
     $inplaykalender_day_bit_popup = [
         'title'        => 'inplaykalender_day_bit_popup',
-        'template'    => $db->escape_string('<div id="{$date}" class="modal">
+        'template'    => $db->escape_string('<div id="{$date}" class="modal" style="display: none;">
 		<div class="tcat">{$week_day} - {$fulldate}</div>
 			<div class="thead">Szenen</div>
 			<div style="margin: 5px 40px;">
@@ -654,7 +654,7 @@ function inplaykalender_global() {
             
             // get inplay scenes
             $szenen = false;
-            if($db->table_exists("$ipt_scenes")) {
+            if($db->table_exists("ipt_scenes")) {
                 $query = $db->query("SELECT * FROM ".TABLE_PREFIX."ipt_scenes WHERE date = '$date'");
                 if(mysqli_num_rows($query) > 0) {
                         $threadlist = "";
