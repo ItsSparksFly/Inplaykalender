@@ -102,6 +102,7 @@ if(empty($action)) {
             $eventlist = "";
             while($event_list = $db->fetch_array($query)) {
                 if($event_list['starttime'] <= $date && $event_list['endtime'] >= $date) {
+		    $events = true;
                     if($mybb->usergroup['cancp'] == 1 || $mybb->user['uid'] == $event_list['uid']) {
                         $eventname = $event_list['name'];
                         $editoptions = "[ <a href=\"inplaykalender.php?action=editevent&eid={$event_list['eid']}\">Bearbeiten</a> &bull; <a href=\"inplaykalender.php?action=deleteevent&eid={$event_list['eid']}\" onclick=\"return confirm('Soll das Event $eventname gelöscht werden?')\">Löschen</a> ]";
