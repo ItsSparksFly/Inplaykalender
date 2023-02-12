@@ -520,7 +520,7 @@ function inplaykalender_activate() {
         .szenentimeline { background: linear-gradient(to left top, #EBD39D 50%, #BADBAF 50%); }
         .szenentimeline strong { color: #3D4F37 !important; }
         .szenengeburtstag { background: linear-gradient(to left top, #EBD39D 50%, #C8B6CC 50%); }
-        .szenenevent { background: linear-gradient(to left top, #EBD39D 50%, #ABD9D8 50%); }
+        .szenenevent { background: linear-gradient(to left top, #C8B6CC 50%, #ABD9D8 50%); }
         .szenenevent strong { }
         .szenengeburtstag strong { color: #543D59 !important; }
         .geburtstagtimeline { background: linear-gradient(to left top, #EBD39D 50%, #BADBAF 50%); }
@@ -706,7 +706,7 @@ function inplaykalender_global() {
                     if($plot_list['startdate'] <= $date && $plot_list['enddate'] >= $date) {
                         $plots = true;
                         $plotlist .= "&bull; <a href=\"plottracker.php?action=view&plid={$plot_list['plid']}\" target=\"_blank\">{$plot_list['name']}</a>";
-                    } else { $plotlist = ""; }
+                    } else { }
                 }
             }
             
@@ -717,6 +717,11 @@ function inplaykalender_global() {
                     $event .= $class;
                     $title = "<a href=\"\" onclick=\"$('#{$date}').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== 'undefined' ? modal_zindex : 9999) }); return false;\"><strong>{$i}</strong></a>";
 eval("\$day_popup = \"".$templates->get("inplaykalender_day_bit_popup")."\";");
+                $week_day_num = date("w", $date);
+                // get days as array
+                $all_days = array($lang->inplaykalender_sonntag, $lang->inplaykalender_montag, $lang->inplaykalender_dienstag, $lang->inplaykalender_mittwoch, $lang->inplaykalender_donnerstag, $lang->inplaykalender_freitag, $lang->inplaykalender_samstag);
+                $week_day = $all_days[$week_day_num];
+                $fulldate = date("d.m.Y", $date);
                 }
             }
 
